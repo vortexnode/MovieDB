@@ -13,6 +13,7 @@ jobs:
       with:
         fetch-depth: 0
     - uses: wangchucheng/git-repo-sync@v0.1.0
+      if: ${{ secrets.GITLAB_URL != '' }}
       with:
         target-url: ${{ secrets.GITLAB_URL }}
         target-username: ${{ secrets.GITLAB_USERNAME }}
