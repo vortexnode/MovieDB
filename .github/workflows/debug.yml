@@ -1,6 +1,7 @@
 name: Build Debug APK
 on:
   workflow_dispatch:
+  push:
 
 jobs:
   build:
@@ -20,35 +21,11 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Generate Debug APKs
-        run: ./gradlew assembleFullDebug assembleFossDebug
+        run: ./gradlew assembleFossDebug
 
-      - name: Install curl
-        run: sudo apt-get update && sudo apt-get install -y curl
-
-      - name: Upload Debug APKs to Telegram
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: |
-          FULL_DEBUG_APK="app/build/outputs/apk/full/debug/app-full-debug.apk"
-          FOSS_DEBUG_APK="app/build/outputs/apk/foss/debug/app-foss-debug.apk"
-
-          if [ -f "$FULL_DEBUG_APK" ]; then
-            echo "Uploading Full Debug APK..."
-            curl -s -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_BOT_TOKEN }}/sendDocument" \
-            -F chat_id=${{ env.TELEGRAM_CHAT_ID }} \
-            -F caption="Full Debug APK Build #${{ github.run_number }}" \
-            -F document=@"$FULL_DEBUG_APK"
-          else
-            echo "Error: Full Debug APK not found at $FULL_DEBUG_APK."
-          fi
-
-          if [ -f "$FOSS_DEBUG_APK" ]; then
-            echo "Uploading Foss Debug APK..."
-            curl -s -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_BOT_TOKEN }}/sendDocument" \
-            -F chat_id=${{ env.TELEGRAM_CHAT_ID }} \
-            -F caption="Foss Debug APK Build #${{ github.run_number }}" \
-            -F document=@"$FOSS_DEBUG_APK"
-          else
-            echo "Error: Foss Debug APK not found at $FOSS_DEBUG_APK."
-          fi
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: showcase-foss-debug-${{ github.run_number }}
+          path: app/build/outputs/apk/foss/debug/*.apk
+          retention-days: 30
