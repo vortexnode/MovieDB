@@ -242,6 +242,12 @@
     </string>
     <string name="internet_connection_warning">An internet connection is required to automatically fetch missing details (like posters, summaries, etc.) for imported items.</string>
     <string name="csv_import">CSV Import</string>
+    <string name="import_report_title">Import Report</string>
+    <string name="import_report_summary">Total: %1$d\nInserted: %2$d\nUpdated: %3$d\nSkipped: %4$d\nFailed: %5$d</string>
+    <string name="error_loading_report">Error loading report.</string>
+    <string name="csv_file_not_found">CSV file not found.</string>
+    <string name="share_import_report">Share Import Report CSV</string>
+    <string name="export_csv">Export/Share CSV</string>
     <string name="schedule_update">Schedule Update</string>
     <string name="schedule_monthly_update">Schedule Monthly Update</string>
     <string name="enable_update">Enable update</string>
