@@ -208,6 +208,11 @@
             android:parentActivityName=".activity.MainActivity"
             android:theme="@style/AppTheme" />
 
+        <activity
+            android:name=".activity.ImportReportActivity"
+            android:label="@string/import_report_title"
+            android:theme="@style/AppTheme" />
+
         <service
             android:name=".service.ImportService"
             android:exported="false"
