@@ -14,6 +14,8 @@ import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import androidx.preference.PreferenceManager
 import com.wirelessalien.android.moviedb.activity.BaseActivity
 import okhttp3.Request
+import kotlinx.coroutines.withContext
+import org.json.JSONArray
 
 data class RecommendationSeed(
     val tmdbId: Int,
@@ -33,7 +35,8 @@ data class RecommendationResult(
     var finalScore: Double = 0.0,
     val overview: String,
     val genreIds: String,
-    val releaseDate: String
+    val releaseDate: String,
+    val isTrendingFallback: Boolean = false
 )
 
 data class RecommendationCache(
@@ -46,7 +49,15 @@ class RecommendationEngine(private val context: Context, private val dbHelper: M
     companion object {
         private val cache = ConcurrentHashMap<Boolean, RecommendationCache>() // true for movies, false for series
         private val CACHE_EXPIRATION_MS = TimeUnit.HOURS.toMillis(12)
+        private val tmdbCache = ConcurrentHashMap<Boolean, RecommendationTmdbCache>()
     }
+
+    data class RecommendationTmdbCache(
+        val timestamp: Long,
+        val ratedIds: List<Int>,
+        val favoriteIds: List<Int>,
+        val itemsInfo: Map<Int, RecommendationSeed>
+    )
 
     fun getCachedResults(isMovie: Boolean): List<RecommendationResult>? {
         val cached = cache[isMovie]
@@ -64,12 +75,12 @@ class RecommendationEngine(private val context: Context, private val dbHelper: M
         cache.clear()
     }
 
-    fun getSeeds(isMovie: Boolean): List<RecommendationSeed> {
+    suspend fun getSeeds(isMovie: Boolean): List<RecommendationSeed> {
         val db = dbHelper.readableDatabase
         val seeds = mutableListOf<RecommendationSeed>()
         val movieInt = if (isMovie) 1 else 0
 
-        // 1. Items with personal_rating >= 8
+        // 1(a). Local rows: Items with personal_rating >= 8
         val queryHighlyRated = """
             SELECT ${MovieDatabaseHelper.COLUMN_MOVIES_ID}, ${MovieDatabaseHelper.COLUMN_TITLE}, ${MovieDatabaseHelper.COLUMN_PERSONAL_RATING}
             FROM ${MovieDatabaseHelper.TABLE_MOVIES}
@@ -89,8 +100,8 @@ class RecommendationEngine(private val context: Context, private val dbHelper: M
             }
         }
 
-        // 2. Items tagged 'Favorites'
-        if (seeds.size < 20) {
+        // 1(a). Local rows: Items tagged 'Favorites'
+        if (seeds.size < 25) {
             val queryFavorites = """
                 SELECT m.${MovieDatabaseHelper.COLUMN_MOVIES_ID}, m.${MovieDatabaseHelper.COLUMN_TITLE}, m.${MovieDatabaseHelper.COLUMN_PERSONAL_RATING}
                 FROM ${MovieDatabaseHelper.TABLE_MOVIES} m
@@ -102,7 +113,7 @@ class RecommendationEngine(private val context: Context, private val dbHelper: M
             """
             val cursorFavorites = db.rawQuery(queryFavorites, arrayOf(movieInt.toString()))
             cursorFavorites.use {
-                while (it.moveToNext() && seeds.size < 20) {
+                while (it.moveToNext() && seeds.size < 25) {
                     val tmdbId = it.getInt(it.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIES_ID))
                     val title = it.getString(it.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_TITLE)) ?: ""
                     val rating = if (it.isNull(it.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING))) 8.0 else it.getDouble(it.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING))
@@ -113,7 +124,77 @@ class RecommendationEngine(private val context: Context, private val dbHelper: M
             }
         }
 
-        // 3. Fallback: Watched items if seeds < 5
+        // 1(b). TMDB Account Lists
+        if (seeds.size < 25) {
+            val preferences = PreferenceManager.getDefaultSharedPreferences(context)
+            val accessToken = preferences.getString("access_token", null)
+            val accountId = preferences.getString("account_id", null)
+            if (accessToken != null && accountId != null) {
+                val mediaTypeStr = if (isMovie) "movies" else "tv"
+                var tmdbCached = tmdbCache[isMovie]
+                if (tmdbCached == null || System.currentTimeMillis() - tmdbCached.timestamp >= CACHE_EXPIRATION_MS) {
+                    val client = NetworkClient.client
+                    val itemsInfoMap = mutableMapOf<Int, RecommendationSeed>()
+                    val ratedIdsList = mutableListOf<Int>()
+                    val favoriteIdsList = mutableListOf<Int>()
+                    withContext(Dispatchers.IO) {
+                        try {
+                            val ratedUrl = "https://api.themoviedb.org/3/account/$accountId/rated/$mediaTypeStr?page=1"
+                            val requestRated = Request.Builder().url(ratedUrl).get().addHeader("Authorization", "Bearer $accessToken").addHeader("accept", "application/json").build()
+                            client.newCall(requestRated).execute().use { response ->
+                                if (response.isSuccessful) {
+                                    val body = response.body?.string()
+                                    if (body != null) {
+                                        val resultsArray = JSONObject(body).optJSONArray("results")
+                                        for (i in 0 until (resultsArray?.length() ?: 0)) {
+                                            val item = resultsArray!!.optJSONObject(i)
+                                            val rating = item.optDouble("rating", 0.0)
+                                            if (rating >= 8.0) {
+                                                val tmdbId = item.optInt("id")
+                                                val title = if (isMovie) item.optString("title") else item.optString("name")
+                                                itemsInfoMap[tmdbId] = RecommendationSeed(tmdbId, isMovie, title, rating)
+                                                ratedIdsList.add(tmdbId)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            val favoriteUrl = "https://api.themoviedb.org/3/account/$accountId/favorite/$mediaTypeStr?page=1"
+                            val requestFav = Request.Builder().url(favoriteUrl).get().addHeader("Authorization", "Bearer $accessToken").addHeader("accept", "application/json").build()
+                            client.newCall(requestFav).execute().use { response ->
+                                if (response.isSuccessful) {
+                                    val body = response.body?.string()
+                                    if (body != null) {
+                                        val resultsArray = JSONObject(body).optJSONArray("results")
+                                        for (i in 0 until (resultsArray?.length() ?: 0)) {
+                                            val item = resultsArray!!.optJSONObject(i)
+                                            val tmdbId = item.optInt("id")
+                                            val title = if (isMovie) item.optString("title") else item.optString("name")
+                                            itemsInfoMap[tmdbId] = RecommendationSeed(tmdbId, isMovie, title, 10.0)
+                                            favoriteIdsList.add(tmdbId)
+                                        }
+                                    }
+                                }
+                            }
+                            tmdbCache[isMovie] = RecommendationTmdbCache(System.currentTimeMillis(), ratedIdsList, favoriteIdsList, itemsInfoMap)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
+                tmdbCached = tmdbCache[isMovie]
+                if (tmdbCached != null) {
+                    for (tmdbId in tmdbCached.ratedIds + tmdbCached.favoriteIds) {
+                        if (seeds.size >= 25) break
+                        if (seeds.none { seed -> seed.tmdbId == tmdbId }) {
+                            tmdbCached.itemsInfo[tmdbId]?.let { seeds.add(it) }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 1(c). Fallback: Watched items if seeds < 5
         if (seeds.size < 5) {
             val queryWatched = """
                 SELECT ${MovieDatabaseHelper.COLUMN_MOVIES_ID}, ${MovieDatabaseHelper.COLUMN_TITLE}, ${MovieDatabaseHelper.COLUMN_PERSONAL_RATING}
@@ -124,7 +205,7 @@ class RecommendationEngine(private val context: Context, private val dbHelper: M
             """
             val cursorWatched = db.rawQuery(queryWatched, arrayOf(movieInt.toString(), MovieDatabaseHelper.CATEGORY_WATCHED.toString()))
             cursorWatched.use {
-                while (it.moveToNext() && seeds.size < 20) {
+                while (it.moveToNext() && seeds.size < 25) {
                     val tmdbId = it.getInt(it.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIES_ID))
                     val title = it.getString(it.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_TITLE)) ?: ""
                     val rating = if (it.isNull(it.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING))) 8.0 else it.getDouble(it.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING))
@@ -134,7 +215,7 @@ class RecommendationEngine(private val context: Context, private val dbHelper: M
                 }
             }
         }
-        return seeds.take(20)
+        return seeds.take(25)
     }
 
     fun getTopGenres(): List<String> {
@@ -219,10 +300,66 @@ class RecommendationEngine(private val context: Context, private val dbHelper: M
         val resultsMap = mutableMapOf<Int, RecommendationResult>()
         val language = BaseActivity.getLanguageParameter2(context)
 
-        coroutineScope {
-            val deferreds = seeds.map { seed ->
-                async(Dispatchers.IO) {
-                    rateLimiter.acquire()
+        if (seeds.isEmpty()) {
+            withContext(Dispatchers.IO) {
+                rateLimiter.acquire()
+                val mediaTypeStr = if (isMovie) "movie" else "tv"
+                val url = "https://api.themoviedb.org/3/trending/$mediaTypeStr/week$language"
+                val requestBuilder = Request.Builder().url(url).get().addHeader("Content-Type", "application/json;charset=utf-8")
+                if (apiReadAccessToken != null) {
+                    requestBuilder.addHeader("Authorization", "Bearer $apiReadAccessToken")
+                } else if (apiKey != null) {
+                    val urlWithKey = if (url.contains("?")) "$url&api_key=$apiKey" else "$url?api_key=$apiKey"
+                    requestBuilder.url(urlWithKey)
+                }
+                try {
+                    client.newCall(requestBuilder.build()).execute().use { response ->
+                        if (response.isSuccessful) {
+                            val responseBody = response.body?.string()
+                            if (responseBody != null) {
+                                val jsonObject = JSONObject(responseBody)
+                                val resultsArray = jsonObject.optJSONArray("results")
+                                if (resultsArray != null) {
+                                    for (i in 0 until resultsArray.length()) {
+                                        val item = resultsArray.optJSONObject(i)
+                                        if (item != null) {
+                                            val tmdbId = item.optInt("id")
+                                            if (exclusions.contains(tmdbId)) continue
+                                            val title = if (isMovie) item.optString("title") else item.optString("name")
+                                            val posterPath = item.optString("poster_path")
+                                            val overview = item.optString("overview", "")
+                                            val releaseDate = if (isMovie) item.optString("release_date") else item.optString("first_air_date")
+                                            val releaseYear = if (releaseDate.isNotEmpty()) releaseDate.substring(0, 4) else ""
+                                            val tmdbScore = item.optDouble("vote_average", 0.0)
+
+                                            val result = RecommendationResult(
+                                                tmdbId = tmdbId,
+                                                isMovie = isMovie,
+                                                title = title,
+                                                posterPath = posterPath,
+                                                releaseYear = releaseYear,
+                                                tmdbScore = tmdbScore,
+                                                seedTitle = "",
+                                                finalScore = 10.0 - (i * 0.1),
+                                                overview = overview,
+                                                genreIds = "",
+                                                releaseDate = releaseDate,
+                                                isTrendingFallback = true
+                                            )
+                                            resultsMap[tmdbId] = result
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (e: Exception) { e.printStackTrace() }
+            }
+        } else {
+            coroutineScope {
+                val deferreds = seeds.map { seed ->
+                    async(Dispatchers.IO) {
+                        rateLimiter.acquire()
                     val mediaTypeStr = if (isMovie) "movie" else "tv"
                     val url = "https://api.themoviedb.org/3/$mediaTypeStr/${seed.tmdbId}/recommendations$language&page=1"
                     val requestBuilder = Request.Builder().url(url).get().addHeader("Content-Type", "application/json;charset=utf-8")
@@ -303,6 +440,8 @@ class RecommendationEngine(private val context: Context, private val dbHelper: M
             }
             deferreds.forEach { it.await() }
         }
+
+        } // end of seeds else block
 
         val finalResults = resultsMap.values.sortedByDescending { it.finalScore }.take(60)
         setCachedResults(isMovie, finalResults)
