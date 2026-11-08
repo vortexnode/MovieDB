@@ -30,11 +30,19 @@ class TmdbSyncServiceTest {
 
     @Test
     fun testDiffLogic() {
-        val existingRatings = setOf(123L, 456L)
+        val existingRatings = setOf("123", "456")
         val tmdbId = 123L
-        assertEquals(true, existingRatings.contains(tmdbId))
+        assertEquals(true, existingRatings.contains(tmdbId.toString()))
 
         val tmdbId2 = 789L
-        assertEquals(false, existingRatings.contains(tmdbId2))
+        assertEquals(false, existingRatings.contains(tmdbId2.toString()))
+    }
+
+    @Test
+    fun testEpisodeDiffLogic() {
+        val existingEpisodes = setOf("123_1_1", "123_1_2")
+        assertEquals(true, existingEpisodes.contains("123_1_1"))
+        assertEquals(false, existingEpisodes.contains("123_1_3"))
+        assertEquals(false, existingEpisodes.contains("124_1_1"))
     }
 }
