@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="title_recommendations">Для вас</string>
+    <string name="title_recommendations">Для тебя</string>
     <string name="recommendations_tab_movies">Фильмы</string>
     <string name="recommendations_tab_series">Сериалы</string>
     <string name="recommendations_because_you_liked">Потому что вам нравится %1$s</string>
