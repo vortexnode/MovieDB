@@ -7,7 +7,8 @@ enum class ImportReason {
     MISSING_TITLE,
     TMDB_FETCH_FAILED,
     DB_ERROR,
-    INVALID_VALUE
+    INVALID_VALUE,
+    TMDB_PUSH_FAILED
 }
 
 data class ImportIssue(

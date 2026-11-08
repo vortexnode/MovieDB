@@ -128,6 +128,10 @@
             android:summary="@string/select_default_sync_provider"
             app:iconSpaceReserved="false"
             app:title="@string/sync_provider2" />
+        <Preference
+            android:key="tmdb_sync_key"
+            android:title="@string/tmdb_sync_preference_title"
+            app:iconSpaceReserved="false"/>
 
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="false"
