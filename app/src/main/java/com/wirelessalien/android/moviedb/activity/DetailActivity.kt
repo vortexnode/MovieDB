@@ -4259,7 +4259,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
     }
 
     private fun hideEmptyRecyclerView(recyclerView: RecyclerView, titleView: View) {
-        if (recyclerView.adapter!!.itemCount == 0) {
+        if (recyclerView.adapter?.itemCount ?: 0 == 0) {
             recyclerView.visibility = View.GONE
             titleView.visibility = View.GONE
         }
