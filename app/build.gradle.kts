@@ -41,6 +41,15 @@ android {
         }
     }
 
+    signingConfigs {
+        create("sharedDebug") {
+            storeFile = file("shared-debug.keystore")
+            storePassword = "android"
+            keyAlias = "showcase-debug"
+            keyPassword = "android"
+        }
+    }
+
     defaultConfig {
         applicationId = "com.wirelessalien.android.moviedb"
         minSdk = 24
@@ -67,6 +76,7 @@ android {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
             isDebuggable = true
+            signingConfig = signingConfigs.getByName("sharedDebug")
         }
     }
 
