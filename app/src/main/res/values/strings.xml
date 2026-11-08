@@ -242,6 +242,12 @@
     </string>
     <string name="internet_connection_warning">An internet connection is required to automatically fetch missing details (like posters, summaries, etc.) for imported items.</string>
     <string name="csv_import">CSV Import</string>
+    <string name="import_report_title">Import Report</string>
+    <string name="import_report_summary">Total: %1$d\nInserted: %2$d\nUpdated: %3$d\nSkipped: %4$d\nFailed: %5$d</string>
+    <string name="error_loading_report">Error loading report.</string>
+    <string name="csv_file_not_found">CSV file not found.</string>
+    <string name="share_import_report">Share Import Report CSV</string>
+    <string name="export_csv">Export/Share CSV</string>
     <string name="schedule_update">Schedule Update</string>
     <string name="schedule_monthly_update">Schedule Monthly Update</string>
     <string name="enable_update">Enable update</string>
@@ -676,6 +682,15 @@
     <string name="export_info">The app allows for the exportation of files in \".db\", \".json\" and \".csv\" formats. Please note, however, that only the \".db\" format is supported for subsequent imports.</string>
     <string name="import_info">Only .db format is supported for imports. .json files cannot be imported.</string>
     <string name="json_import_not_supported">JSON imports are not supported. Please select a .db file.</string>
+    <string name="action_trakt_import">Import from Trakt</string>
+    <string name="trakt_import_title">Trakt Import</string>
+    <string name="trakt_import_description">Select data to import from Trakt:</string>
+    <string name="trakt_import_watched">Watched History (Movies/Shows)</string>
+    <string name="trakt_import_ratings">Ratings</string>
+    <string name="trakt_import_watchlist">Watchlist</string>
+    <string name="trakt_import_collection">Collection</string>
+    <string name="trakt_import_favorites">Favorites</string>
+    <string name="trakt_import_custom_lists">Custom Lists</string>
     <string name="i_understand">I Understand</string>
     <string name="directory_path">Path: %1$s</string>
     <string name="no_browser_available">No app can handle this request. Please install a web browser.</string>
