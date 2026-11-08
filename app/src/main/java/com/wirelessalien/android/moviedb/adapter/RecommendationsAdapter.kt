@@ -39,6 +39,7 @@ class RecommendationsAdapter(
         val posterImage: ImageView = view.findViewById(R.id.poster_image)
         val titleText: TextView = view.findViewById(R.id.title_text)
         val yearScoreText: TextView = view.findViewById(R.id.year_score_text)
+        val scoreBadge: TextView = view.findViewById(R.id.scoreBadge)
         val seedText: TextView = view.findViewById(R.id.seed_text)
         val btnWatchlist: MaterialButton = view.findViewById(R.id.btn_add_watchlist)
         val btnNotInterested: MaterialButton = view.findViewById(R.id.btn_not_interested)
@@ -56,6 +57,12 @@ class RecommendationsAdapter(
         val scoreStr = if (item.tmdbScore > 0) String.format("%.1f", item.tmdbScore) else "N/A"
         holder.yearScoreText.text = "${item.releaseYear} • \u2605 $scoreStr"
         holder.seedText.text = context.getString(R.string.recommendations_because_you_liked, item.seedTitle)
+
+        if (item.tmdbScore > 0) {
+            holder.scoreBadge.text = String.format("%.1f", item.tmdbScore)
+        } else {
+            holder.scoreBadge.text = "N/A"
+        }
 
         if (!item.posterPath.isNullOrEmpty()) {
             Picasso.get()
