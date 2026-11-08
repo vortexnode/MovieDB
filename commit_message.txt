@@ -1,0 +1,7 @@
+feat: add bottom sheet for watch date selection
+
+- Adds a bottom sheet dialog to allow users to select watch dates (Right now, Release date, Another date, Unknown date, Start watching).
+- Replaces immediate 'Mark as watched' logic in `DetailActivity`, `EpisodeAdapter`, and `SeasonDetailsFragment`.
+- Properly handles omition of empty `watched_at` dates in `TraktAutoSyncManager`.
+- Adds user preferences to toggle date prompt and configure default fallbacks.
+- Includes full strings.xml support (and Russian localization).

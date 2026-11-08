@@ -941,12 +941,40 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                             category
                         )
 
-                        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(Date())
-                        if (category == MovieDatabaseHelper.CATEGORY_WATCHING) {
-                            showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, currentDate)
-                        } else if (category == MovieDatabaseHelper.CATEGORY_WATCHED) {
-                            showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, currentDate)
-                            showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, currentDate)
+                        val finalCategory = category
+                        val isWatchedCategory = (finalCategory == MovieDatabaseHelper.CATEGORY_WATCHED)
+
+                        val proceedWithSave = { c_startDate: String?, c_finishDate: String?, c_category: Int ->
+                            if (c_startDate != null) {
+                                showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, c_startDate)
+                            }
+                            if (c_finishDate != null) {
+                                showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, c_finishDate)
+                            } else if (c_category == MovieDatabaseHelper.CATEGORY_WATCHED) {
+                                showValues.putNull(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE)
+                            }
+                            showValues.put(MovieDatabaseHelper.COLUMN_CATEGORIES, c_category)
+                        }
+
+                        if (isWatchedCategory) {
+                            WatchDateHelper.showWatchDateDialog(
+                                this@DetailActivity,
+                                showTitle.toString(), null, 0
+                            ) { result ->
+                                when (result) {
+                                    is WatchDateHelper.WatchDateResult.DateSelected -> proceedWithSave(result.date, result.date, finalCategory)
+                                    is WatchDateHelper.WatchDateResult.UnknownDate -> proceedWithSave(WatchDateHelper.getCurrentDate(), null, finalCategory)
+                                    is WatchDateHelper.WatchDateResult.StartWatching -> proceedWithSave(WatchDateHelper.getCurrentDate(), null, MovieDatabaseHelper.CATEGORY_WATCHING)
+                                    is WatchDateHelper.WatchDateResult.Cancelled -> {}
+                                }
+                            }
+                        } else {
+                            val currentDate = WatchDateHelper.getCurrentDate()
+                            if (finalCategory == MovieDatabaseHelper.CATEGORY_WATCHING) {
+                                proceedWithSave(currentDate, null, finalCategory)
+                            } else {
+                                proceedWithSave(null, null, finalCategory)
+                            }
                         }
 
                         // Add the show to the database
