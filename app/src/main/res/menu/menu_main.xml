@@ -30,6 +30,12 @@
         app:showAsAction="never"/>
 
     <item
+        android:id="@+id/action_calendar"
+        android:title="@string/release_calendar"
+        android:icon="@drawable/ic_calendar"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_login"
         android:icon="@drawable/ic_account_border"
         android:title="@string/action_account"

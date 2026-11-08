@@ -379,6 +379,12 @@ class MainActivity : BaseActivity() {
                     return true
                 }
 
+                if (id == R.id.action_calendar) {
+                    val intent = Intent(applicationContext, CalendarActivity::class.java)
+                    startActivity(intent)
+                    return true
+                }
+
                 if (id == R.id.action_login) {
                     if (preferences.getString("sync_provider", "local") == "trakt") {
                         val loginFragmentTkt = LoginFragmentTkt()

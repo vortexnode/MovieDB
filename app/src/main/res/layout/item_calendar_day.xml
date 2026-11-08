@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/tvDayNumber"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:gravity="center"
+        android:textAppearance="?attr/textAppearanceBody2"
+        tools:text="15" />
+
+    <ImageView
+        android:id="@+id/ivHasReleases"
+        android:layout_width="4dp"
+        android:layout_height="4dp"
+        android:layout_marginTop="2dp"
+        android:background="@drawable/circle_shape"
+        android:visibility="invisible"
+        android:contentDescription="Has Releases" />
+
+</LinearLayout>
