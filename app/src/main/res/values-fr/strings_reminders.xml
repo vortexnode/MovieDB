@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reminders_settings_title">Rappels</string>
+    <string name="reminders_movie_premieres_title">Premières de films</string>
+    <string name="reminders_movie_premieres_summary">Recevez des notifications lorsque les films de votre liste sont publiés</string>
+    <string name="reminders_new_episodes_title">Nouveaux épisodes</string>
+    <string name="reminders_new_episodes_summary">Recevez des notifications pour les nouveaux épisodes des séries que vous regardez ou prévoyez de regarder</string>
+    <string name="reminders_new_seasons_title">Nouvelles saisons</string>
+    <string name="reminders_new_seasons_summary">Recevez des notifications lorsqu\'une nouvelle saison commence pour les séries que vous regardez ou prévoyez de regarder</string>
+    <string name="reminders_time_of_day_title">Heure de la journée</string>
+    <string name="reminders_time_of_day_summary">Quand les rappels doivent-ils être envoyés ?</string>
+    <string name="reminders_days_before_title">Me rappeler</string>
+    <string name="reminders_days_before_0">Le jour de la sortie</string>
+    <string name="reminders_days_before_1">1 jour avant</string>
+    <string name="reminders_days_before_2">2 jours avant</string>
+    <string name="reminders_days_before_3">3 jours avant</string>
+    <string name="reminders_days_before_7">1 semaine avant</string>
+</resources>

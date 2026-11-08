@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reminders_settings_title">Υπενθυμίσεις</string>
+    <string name="reminders_movie_premieres_title">Πρεμιέρες ταινιών</string>
+    <string name="reminders_movie_premieres_summary">Λάβετε ειδοποιήσεις όταν κυκλοφορούν ταινίες στη λίστα σας</string>
+    <string name="reminders_new_episodes_title">Νέα επεισόδια</string>
+    <string name="reminders_new_episodes_summary">Λάβετε ειδοποιήσεις για νέα επεισόδια σειρών που παρακολουθείτε ή σχεδιάζετε να παρακολουθήσετε</string>
+    <string name="reminders_new_seasons_title">Νέες σεζόν</string>
+    <string name="reminders_new_seasons_summary">Λάβετε ειδοποιήσεις όταν ξεκινά μια νέα σεζόν για σειρές που παρακολουθείτε ή σχεδιάζετε να παρακολουθήσετε</string>
+    <string name="reminders_time_of_day_title">Ώρα</string>
+    <string name="reminders_time_of_day_summary">Πότε πρέπει να στέλνονται υπενθυμίσεις;</string>
+    <string name="reminders_days_before_title">Υπενθύμιση</string>
+    <string name="reminders_days_before_0">Την ημέρα της κυκλοφορίας</string>
+    <string name="reminders_days_before_1">1 ημέρα πριν</string>
+    <string name="reminders_days_before_2">2 ημέρες πριν</string>
+    <string name="reminders_days_before_3">3 ημέρες πριν</string>
+    <string name="reminders_days_before_7">1 εβδομάδα πριν</string>
+</resources>

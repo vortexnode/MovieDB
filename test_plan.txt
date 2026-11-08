@@ -1,0 +1,6 @@
+1. Audit write-up in PR description
+2. Setup strings
+3. Settings UI
+4. Worker rewrite
+5. Boot receiver
+6. DetailActivity navigation
