@@ -5,6 +5,7 @@
     <string name="tmdb_sync_favorites">Синхронизация избранного</string>
     <string name="tmdb_sync_watchlist">Синхронизация списка к просмотру</string>
     <string name="tmdb_sync_lists">Синхронизация пользовательских списков (из тегов)</string>
+    <string name="tmdb_sync_local_lists">Синхронизация локальных списков</string>
     <string name="tmdb_sync_dry_run">Тестовый запуск (Только расчет количества)</string>
     <string name="tmdb_sync_start">Начать синхронизацию</string>
     <string name="tmdb_sync_list_selection">Выберите теги для синхронизации как списки:</string>

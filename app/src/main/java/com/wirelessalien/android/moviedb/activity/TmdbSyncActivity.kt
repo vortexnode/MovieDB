@@ -1,7 +1,11 @@
 package com.wirelessalien.android.moviedb.activity
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
+import android.os.Build
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -20,6 +24,15 @@ class TmdbSyncActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTmdbSyncBinding
     private val selectedTags = mutableSetOf<Long>()
     private lateinit var dbHelper: MovieDatabaseHelper
+
+    private val syncResultReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val result = intent?.getStringExtra("result")
+            if (result != null) {
+                binding.textViewSyncStatus.text = result
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeHelper.applyAmoledTheme(this)
@@ -63,6 +76,7 @@ class TmdbSyncActivity : AppCompatActivity() {
             val syncFavorites = binding.checkboxFavorites.isChecked
             val syncWatchlist = binding.checkboxWatchlist.isChecked
             val syncLists = binding.checkboxLists.isChecked
+            val syncLocalLists = binding.checkboxLocalLists.isChecked
             val dryRun = binding.checkboxDryRun.isChecked
 
             if (syncLists && selectedTags.isEmpty()) {
@@ -75,6 +89,7 @@ class TmdbSyncActivity : AppCompatActivity() {
                 putExtra("syncFavorites", syncFavorites)
                 putExtra("syncWatchlist", syncWatchlist)
                 putExtra("syncLists", syncLists)
+                putExtra("syncLocalLists", syncLocalLists)
                 putExtra("dryRun", dryRun)
                 putExtra("selectedTags", selectedTags.toLongArray())
             }
@@ -88,5 +103,19 @@ class TmdbSyncActivity : AppCompatActivity() {
                 finish()
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(syncResultReceiver, IntentFilter("com.wirelessalien.android.moviedb.TMDB_SYNC_RESULT"), Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(syncResultReceiver, IntentFilter("com.wirelessalien.android.moviedb.TMDB_SYNC_RESULT"))
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        unregisterReceiver(syncResultReceiver)
     }
 }

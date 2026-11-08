@@ -60,6 +60,13 @@
                 android:text="@string/tmdb_sync_lists"
                 android:checked="true"/>
 
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/checkboxLocalLists"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/tmdb_sync_local_lists"
+                android:checked="true"/>
+
             <TextView
                 android:id="@+id/textViewListSelection"
                 android:layout_width="match_parent"
