@@ -385,6 +385,12 @@ class MainActivity : BaseActivity() {
                     return true
                 }
 
+                if (id == R.id.action_recommendations) {
+                    val intent = Intent(applicationContext, com.wirelessalien.android.moviedb.activity.RecommendationsActivity::class.java)
+                    startActivity(intent)
+                    return true
+                }
+
                 if (id == R.id.action_login) {
                     if (preferences.getString("sync_provider", "local") == "trakt") {
                         val loginFragmentTkt = LoginFragmentTkt()

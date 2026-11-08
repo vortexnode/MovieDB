@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="title_recommendations">For you</string>
+    <string name="recommendations_tab_movies">Movies</string>
+    <string name="recommendations_tab_series">Series</string>
+    <string name="recommendations_because_you_liked">Because you liked %1$s</string>
+    <string name="recommendations_not_interested">Not interested</string>
+    <string name="recommendations_add_to_watchlist">Add to watchlist</string>
+    <string name="recommendations_empty">No recommendations found.</string>
+</resources>
