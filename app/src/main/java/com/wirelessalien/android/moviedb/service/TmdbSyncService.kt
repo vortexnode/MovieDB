@@ -113,7 +113,8 @@ class TmdbSyncService : Service() {
                 }
                 if (response.code >= 500) {
                     response.close()
-                    delay(2000L * (attempt + 1))
+                    val backoff = (1000 * Math.pow(2.0, attempt.toDouble())).toLong()
+                    delay(backoff)
                     attempt++
                     continue
                 }
@@ -186,7 +187,8 @@ class TmdbSyncService : Service() {
                     }
                     if (response.code >= 500) {
                         response.close()
-                        delay(2000L * (attempt + 1))
+                        val backoff = (1000 * Math.pow(2.0, attempt.toDouble())).toLong()
+                        delay(backoff)
                         attempt++
                         continue
                     }
@@ -277,7 +279,7 @@ class TmdbSyncService : Service() {
                     val (success, statusCode) = apiPostWithStatus(url, json, accessToken)
                     if (!success) {
                         report.failed++
-                        report.issues.add(ImportIssue(i, title, tmdbId, ImportReason.DB_ERROR, "Failed to sync rating (TMDB_PUSH_FAILED) - HTTP $statusCode"))
+                        report.issues.add(ImportIssue(i, title, tmdbId, ImportReason.TMDB_PUSH_FAILED, "HTTP $statusCode"))
                     } else {
                         report.inserted++
                     }
@@ -315,7 +317,7 @@ class TmdbSyncService : Service() {
                     val (success, statusCode) = apiPostWithStatus(url, json, accessToken)
                     if (!success) {
                         report.failed++
-                        report.issues.add(ImportIssue(j, "$title S${season}E${episode}", showTmdbId, ImportReason.DB_ERROR, "Failed to sync episode rating (TMDB_PUSH_FAILED) - HTTP $statusCode"))
+                        report.issues.add(ImportIssue(j, "$title S${season}E${episode}", showTmdbId, ImportReason.TMDB_PUSH_FAILED, "HTTP $statusCode"))
                     } else {
                         report.inserted++
                     }
@@ -369,7 +371,7 @@ class TmdbSyncService : Service() {
                         val (success, statusCode) = apiPostWithStatus(url, json, accessToken)
                         if (!success) {
                             report.failed++
-                            report.issues.add(ImportIssue(i, title, tmdbId, ImportReason.DB_ERROR, "Failed to sync favorite (TMDB_PUSH_FAILED) - HTTP $statusCode"))
+                            report.issues.add(ImportIssue(i, title, tmdbId, ImportReason.TMDB_PUSH_FAILED, "HTTP $statusCode"))
                         } else {
                             report.inserted++
                         }
@@ -410,7 +412,7 @@ class TmdbSyncService : Service() {
                     val (success, statusCode) = apiPostWithStatus(url, json, accessToken)
                     if (!success) {
                         report.failed++
-                        report.issues.add(ImportIssue(i, title, tmdbId, ImportReason.DB_ERROR, "Failed to sync watchlist (TMDB_PUSH_FAILED) - HTTP $statusCode"))
+                        report.issues.add(ImportIssue(i, title, tmdbId, ImportReason.TMDB_PUSH_FAILED, "HTTP $statusCode"))
                     } else {
                         report.inserted++
                     }
@@ -446,7 +448,7 @@ class TmdbSyncService : Service() {
                     val (success, statusCode) = apiPostWithStatus(url, json, accessToken)
                     if (!success) {
                         report.failed++
-                        report.issues.add(ImportIssue(0, tagName, null, ImportReason.DB_ERROR, "Failed to create list (TMDB_PUSH_FAILED) - HTTP $statusCode"))
+                        report.issues.add(ImportIssue(0, tagName, null, ImportReason.TMDB_PUSH_FAILED, "HTTP $statusCode"))
                         continue // Skip adding items if list creation failed
                     }
                     try {
@@ -459,7 +461,7 @@ class TmdbSyncService : Service() {
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
-                } else if (!dryRun && tmdbListId != null) {
+                } else if (tmdbListId != null) {
                     // Fetch existing items for this list
                     // List item schema in V4 has "media_type" and "media_id"
                     existingListItems.addAll(fetchExisting("https://api.themoviedb.org/4/list/$tmdbListId", accessToken, "media_type", "media_id"))
@@ -501,7 +503,7 @@ class TmdbSyncService : Service() {
                         val (success, statusCode) = apiPostWithStatus(url, json, accessToken)
                         if (!success) {
                             report.failed++
-                            report.issues.add(ImportIssue(i, title, tmdbId, ImportReason.DB_ERROR, "Failed to add to list (TMDB_PUSH_FAILED) - HTTP $statusCode"))
+                            report.issues.add(ImportIssue(i, title, tmdbId, ImportReason.TMDB_PUSH_FAILED, "HTTP $statusCode"))
                         } else {
                             report.inserted++
                         }

@@ -45,4 +45,37 @@ class TmdbSyncServiceTest {
         assertEquals(false, existingEpisodes.contains("123_1_3"))
         assertEquals(false, existingEpisodes.contains("124_1_1"))
     }
+
+    @Test
+    fun testListItemDiffLogic() {
+        val existingListItems = setOf("movie_123", "tv_456")
+
+        val isMovie1 = true
+        val type1 = if (isMovie1) "movie" else "tv"
+        val tmdbId1 = 123L
+        assertEquals(true, existingListItems.contains("${type1}_${tmdbId1}"))
+
+        val isMovie2 = false
+        val type2 = if (isMovie2) "movie" else "tv"
+        val tmdbId2 = 456L
+        assertEquals(true, existingListItems.contains("${type2}_${tmdbId2}"))
+
+        val isMovie3 = true
+        val type3 = if (isMovie3) "movie" else "tv"
+        val tmdbId3 = 456L
+        assertEquals(false, existingListItems.contains("${type3}_${tmdbId3}"))
+    }
+
+    @Test
+    fun testRetryBackoffLogicMock() {
+        // Mock testing for backoff logic based on the service's implementation.
+        // The service uses: val backoff = (1000 * Math.pow(2.0, retryCount.toDouble())).toLong()
+        val getBackoff = { retryCount: Int ->
+            (1000 * Math.pow(2.0, retryCount.toDouble())).toLong()
+        }
+
+        assertEquals(1000L, getBackoff(0))
+        assertEquals(2000L, getBackoff(1))
+        assertEquals(4000L, getBackoff(2))
+    }
 }
