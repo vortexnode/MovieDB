@@ -168,7 +168,7 @@ class RecommendationEngine(private val context: Context, private val dbHelper: M
         val queryCategories = """
             SELECT ${MovieDatabaseHelper.COLUMN_MOVIES_ID}
             FROM ${MovieDatabaseHelper.TABLE_MOVIES}
-            WHERE ${MovieDatabaseHelper.COLUMN_MOVIE} = ? AND ${MovieDatabaseHelper.COLUMN_CATEGORIES} IN (?, ?, ?, ?)
+            WHERE ${MovieDatabaseHelper.COLUMN_MOVIE} = ? AND ${MovieDatabaseHelper.COLUMN_CATEGORIES} IN (?, ?, ?, ?, ?)
         """
         val cursorCategories = db.rawQuery(queryCategories, arrayOf(
             movieInt.toString(),
@@ -295,6 +295,7 @@ class RecommendationEngine(private val context: Context, private val dbHelper: M
 
         val finalResults = resultsMap.values.sortedByDescending { it.finalScore }.take(60)
         setCachedResults(isMovie, finalResults)
+        if (finalResults.isEmpty() && seeds.isNotEmpty()) throw RuntimeException("Failed to fetch recommendations or no matching results")
         return finalResults
     }
 }

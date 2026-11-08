@@ -77,22 +77,38 @@ class RecommendationsAdapter(
         holder.btnWatchlist.setOnClickListener {
             CoroutineScope(Dispatchers.IO).launch {
                 val db = dbHelper.writableDatabase
-                val values = ContentValues().apply {
-                    put(MovieDatabaseHelper.COLUMN_MOVIES_ID, item.tmdbId)
-                    put(MovieDatabaseHelper.COLUMN_RATING, 0.0)
-                    put(MovieDatabaseHelper.COLUMN_IMAGE, "")
-                    put(MovieDatabaseHelper.COLUMN_ICON, "")
-                    put(MovieDatabaseHelper.COLUMN_TITLE, item.title)
-                    put(MovieDatabaseHelper.COLUMN_SUMMARY, "")
-                    put(MovieDatabaseHelper.COLUMN_GENRES, "")
-                    put(MovieDatabaseHelper.COLUMN_GENRES_IDS, "")
-                    put(MovieDatabaseHelper.COLUMN_CATEGORIES, MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH)
-                    put(MovieDatabaseHelper.COLUMN_MOVIE, if (isMovie) 1 else 0)
+
+                // First check if it already exists
+                val cursor = db.query(MovieDatabaseHelper.TABLE_MOVIES, arrayOf(MovieDatabaseHelper.COLUMN_ID),
+                    "${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ? AND ${MovieDatabaseHelper.COLUMN_MOVIE} = ?",
+                    arrayOf(item.tmdbId.toString(), if(isMovie) "1" else "0"), null, null, null)
+                val exists = cursor.moveToFirst()
+                cursor.close()
+
+                var success = false
+                if (!exists) {
+                    val values = ContentValues().apply {
+                        put(MovieDatabaseHelper.COLUMN_MOVIES_ID, item.tmdbId)
+                        put(MovieDatabaseHelper.COLUMN_RATING, 0.0)
+                        put(MovieDatabaseHelper.COLUMN_IMAGE, "")
+                        put(MovieDatabaseHelper.COLUMN_ICON, "")
+                        put(MovieDatabaseHelper.COLUMN_TITLE, item.title)
+                        put(MovieDatabaseHelper.COLUMN_SUMMARY, "")
+                        put(MovieDatabaseHelper.COLUMN_GENRES, "")
+                        put(MovieDatabaseHelper.COLUMN_GENRES_IDS, "")
+                        put(MovieDatabaseHelper.COLUMN_CATEGORIES, MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH)
+                        put(MovieDatabaseHelper.COLUMN_MOVIE, if (isMovie) 1 else 0)
+                    }
+                    val result = db.insertWithOnConflict(MovieDatabaseHelper.TABLE_MOVIES, null, values, SQLiteDatabase.CONFLICT_IGNORE)
+                    success = result != -1L
                 }
-                val result = db.insertWithOnConflict(MovieDatabaseHelper.TABLE_MOVIES, null, values, SQLiteDatabase.CONFLICT_IGNORE)
+
                 CoroutineScope(Dispatchers.Main).launch {
-                    if (result != -1L) {
+                    if (success) {
                         Toast.makeText(context, "Added to watchlist", Toast.LENGTH_SHORT).show()
+                        removeItem(holder.adapterPosition)
+                    } else if (exists) {
+                        Toast.makeText(context, "Already in database", Toast.LENGTH_SHORT).show()
                         removeItem(holder.adapterPosition)
                     } else {
                         Toast.makeText(context, "Failed to add", Toast.LENGTH_SHORT).show()
@@ -116,6 +132,7 @@ class RecommendationsAdapter(
         if (position >= 0 && position < items.size) {
             items.removeAt(position)
             notifyItemRemoved(position)
+            notifyItemRangeChanged(position, items.size)
         }
     }
 

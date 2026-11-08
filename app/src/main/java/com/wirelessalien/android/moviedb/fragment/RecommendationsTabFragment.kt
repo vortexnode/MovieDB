@@ -70,7 +70,7 @@ class RecommendationsTabFragment : Fragment() {
 
     private fun loadRecommendations(forceRefresh: Boolean = false) {
         if (!forceRefresh && engine.getCachedResults(isMovie) != null) {
-            updateUI(engine.getCachedResults(isMovie)!!)
+            updateUI(engine.getCachedResults(isMovie))
             return
         }
 
@@ -84,17 +84,27 @@ class RecommendationsTabFragment : Fragment() {
             if (forceRefresh) {
                 engine.invalidateCache()
             }
-            val results = withContext(Dispatchers.IO) {
-                engine.getRecommendations(isMovie)
+            val results = try {
+                withContext(Dispatchers.IO) {
+                    engine.getRecommendations(isMovie)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
             }
             updateUI(results)
         }
     }
 
-    private fun updateUI(results: List<com.wirelessalien.android.moviedb.recommendations.RecommendationResult>) {
+    private fun updateUI(results: List<com.wirelessalien.android.moviedb.recommendations.RecommendationResult>?) {
         swipeRefresh.isRefreshing = false
         progressBar.visibility = View.GONE
-        if (results.isEmpty()) {
+        if (results == null) {
+            emptyView.text = "Failed to load recommendations. Please try again later."
+            emptyView.visibility = View.VISIBLE
+            recyclerView.visibility = View.GONE
+        } else if (results.isEmpty()) {
+            emptyView.text = getString(R.string.recommendations_empty)
             emptyView.visibility = View.VISIBLE
             recyclerView.visibility = View.GONE
         } else {
