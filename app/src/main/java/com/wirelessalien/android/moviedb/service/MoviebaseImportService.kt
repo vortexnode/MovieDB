@@ -542,40 +542,12 @@ class MoviebaseImportService : Service() {
     private fun finalizeReport(report: ImportReport, processedRows: Int) {
         report.total = processedRows
 
-        var reportJsonPath: String? = null
-        var reportCsvPath: String? = null
-        try {
-            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val downloadsDir = applicationContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-                ?: Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                ?: applicationContext.filesDir
-
-            val jsonFile = File(downloadsDir, "moviebase_import_report_$timestamp.json")
-            val csvFile = File(downloadsDir, "moviebase_import_report_$timestamp.csv")
-
-            FileWriter(jsonFile).use { writer ->
-                writer.write(Gson().toJson(report))
-            }
-            reportJsonPath = jsonFile.absolutePath
-
-            FileWriter(csvFile).use { writer ->
-                writer.append("row,title,tmdb_id,status,reason,detailMessage\n")
-                report.issues.forEach { issue ->
-                    writer.append("${issue.rowNumber},\"${issue.title?.replace("\"", "\"\"") ?: ""}\",${issue.tmdbId ?: ""},FAILED/SKIPPED,${issue.reason.name},\"${issue.detailMessage?.replace("\"", "\"\"") ?: ""}\"\n")
-                }
-            }
-            reportCsvPath = csvFile.absolutePath
-        } catch (e: Exception) {
-            Log.e(TAG, "Error saving import reports", e)
-        }
+        val (reportJsonPath, reportCsvPath) = com.wirelessalien.android.moviedb.helper.ReportExportHelper.saveReport(applicationContext, report, "moviebase_import_report")
 
         updateNotification(getString(R.string.import_complete), processedRows, processedRows, isFinished = true, reportPath = reportJsonPath, reportCsvPath = reportCsvPath)
 
-        serviceScope.launch {
-            delay(5000)
-            stopForeground(STOP_FOREGROUND_REMOVE)
-            stopSelf()
-        }
+        stopForeground(STOP_FOREGROUND_DETACH)
+        stopSelf()
     }
 
     private fun createNotificationChannel() {

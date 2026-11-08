@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="last_import_report">Last import report</string>
+    <string name="no_report_found">No report found</string>
+</resources>

@@ -8,6 +8,9 @@ import android.provider.OpenableColumns
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import android.os.Environment
+import java.io.File
+import com.wirelessalien.android.moviedb.activity.ImportReportActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.documentfile.provider.DocumentFile
@@ -62,6 +65,24 @@ class MoviebaseImportActivity : AppCompatActivity() {
 
         binding.buttonStartImport.setOnClickListener {
             startImport()
+        }
+
+        binding.buttonLastReport.setOnClickListener {
+            val dir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: filesDir
+            val jsonFiles = dir.listFiles { file -> file.name.startsWith("moviebase_import_report_") && file.name.endsWith(".json") }
+            val lastJson = jsonFiles?.maxByOrNull { it.lastModified() }
+            if (lastJson != null) {
+                val csvFile = File(dir, lastJson.name.removeSuffix(".json") + ".csv")
+                val intent = Intent(this, ImportReportActivity::class.java).apply {
+                    putExtra("report_json_path", lastJson.absolutePath)
+                    if (csvFile.exists()) {
+                        putExtra("report_csv_path", csvFile.absolutePath)
+                    }
+                }
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, getString(R.string.no_report_found), Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

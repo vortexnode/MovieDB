@@ -425,32 +425,7 @@ class ImportService : Service() {
 
         report.total = processedRows
 
-        var reportJsonPath: String? = null
-        var reportCsvPath: String? = null
-        try {
-            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val downloadsDir = applicationContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-                ?: Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                ?: applicationContext.filesDir
-
-            val jsonFile = File(downloadsDir, "import_report_$timestamp.json")
-            val csvFile = File(downloadsDir, "import_report_$timestamp.csv")
-
-            FileWriter(jsonFile).use { writer ->
-                writer.write(Gson().toJson(report))
-            }
-            reportJsonPath = jsonFile.absolutePath
-
-            FileWriter(csvFile).use { writer ->
-                writer.append("row,title,tmdb_id,status,reason,detailMessage\n")
-                report.issues.forEach { issue ->
-                    writer.append("${issue.rowNumber},\"${issue.title?.replace("\"", "\"\"") ?: ""}\",${issue.tmdbId ?: ""},FAILED/SKIPPED,${issue.reason.name},\"${issue.detailMessage?.replace("\"", "\"\"") ?: ""}\"\n")
-                }
-            }
-            reportCsvPath = csvFile.absolutePath
-        } catch (e: Exception) {
-            Log.e(TAG, "Error saving import reports", e)
-        }
+        val (reportJsonPath, reportCsvPath) = com.wirelessalien.android.moviedb.helper.ReportExportHelper.saveReport(applicationContext, report, "import_report")
 
         if (success) {
             updateNotification(getString(R.string.import_complete), processedRows, if(totalRowsEstimate < processedRows) processedRows else totalRowsEstimate , isFinished = true, reportPath = reportJsonPath, reportCsvPath = reportCsvPath)
@@ -459,12 +434,9 @@ class ImportService : Service() {
             updateNotification(getString(R.string.import_failed_or_finished_with_errors), processedRows, totalRowsEstimate, isFinished = true, isError = true, reportPath = reportJsonPath, reportCsvPath = reportCsvPath)
             Log.e(TAG, "Import failed or finished with errors.")
         }
-        // Delay stopping foreground and service to allow user to see final notification
-        serviceScope.launch {
-            delay(5000)
-            stopForeground(STOP_FOREGROUND_REMOVE)
-            stopSelf()
-        }
+
+        stopForeground(STOP_FOREGROUND_DETACH)
+        stopSelf()
     }
 
     private fun createNotificationChannel() {

@@ -58,6 +58,15 @@
                 android:text="@string/select_csv_file"/>
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonLastReport"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/buttonSelectCsv"
+                android:layout_marginTop="8dp"
+                android:text="@string/last_import_report"
+                style="@style/Widget.Material3.Button.OutlinedButton" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonInfo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

@@ -28,7 +28,7 @@ class TraktImporter(private val movieDbHelper: MovieDatabaseHelper) {
 
     private val TAG = "TraktImporter"
 
-    fun processWatchedMovie(item: JSONObject, report: ImportReport, rowNumber: Int): Boolean {
+    fun processWatchedMovie(item: JSONObject, report: ImportReport, rowNumber: Int, source: String): Boolean {
         val tmdbId = getTmdbId(item, "movie")
         var title = getTitle(item, "movie")
 
@@ -55,10 +55,10 @@ class TraktImporter(private val movieDbHelper: MovieDatabaseHelper) {
             cv.put(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED, plays - 1)
         }
 
-        return updateOrInsertMovie(tmdbId, cv, true, report, rowNumber, title)
+        return updateOrInsertMovie(tmdbId, cv, true, report, rowNumber, title, source)
     }
 
-    fun processWatchedShow(item: JSONObject, report: ImportReport, rowNumber: Int): Boolean {
+    fun processWatchedShow(item: JSONObject, report: ImportReport, rowNumber: Int, source: String): Boolean {
         val showObj = item.optJSONObject("show") ?: return false
         val tmdbId = showObj.optJSONObject("ids")?.optLong("tmdb")
         val title = showObj.optString("title")
@@ -76,7 +76,7 @@ class TraktImporter(private val movieDbHelper: MovieDatabaseHelper) {
         val existingShowId = movieDbHelper.getMovieRowId(tmdbId, false)
         if (existingShowId == null) {
             showCv.put(MovieDatabaseHelper.COLUMN_CATEGORIES, MovieDatabaseHelper.CATEGORY_WATCHING)
-            updateOrInsertMovie(tmdbId, showCv, false, report, rowNumber, title) // Creates the show row
+            updateOrInsertMovie(tmdbId, showCv, false, report, rowNumber, title, source) // Creates the show row
         }
 
         val dbExistingShowId = movieDbHelper.getMovieRowId(tmdbId, false) ?: return false
@@ -116,7 +116,7 @@ class TraktImporter(private val movieDbHelper: MovieDatabaseHelper) {
         return true
     }
 
-    fun processRating(item: JSONObject, report: ImportReport, rowNumber: Int): Boolean {
+    fun processRating(item: JSONObject, report: ImportReport, rowNumber: Int, source: String): Boolean {
         val type = item.optString("type")
         val rating = item.optInt("rating")
         if (rating < 1 || rating > 10) return false
@@ -134,7 +134,7 @@ class TraktImporter(private val movieDbHelper: MovieDatabaseHelper) {
                 cv.put(MovieDatabaseHelper.COLUMN_TITLE, title ?: "Unknown")
                 cv.put(MovieDatabaseHelper.COLUMN_MOVIE, if (type == "movie") 1 else 0)
                 cv.put(MovieDatabaseHelper.COLUMN_PERSONAL_RATING, rating)
-                return updateOrInsertMovie(tmdbId, cv, type == "movie", report, rowNumber, title)
+                return updateOrInsertMovie(tmdbId, cv, type == "movie", report, rowNumber, title, source)
             }
             "episode" -> {
                 val showObj = item.optJSONObject("show") ?: return false
@@ -154,7 +154,7 @@ class TraktImporter(private val movieDbHelper: MovieDatabaseHelper) {
                     showCv.put(MovieDatabaseHelper.COLUMN_TITLE, showTitle)
                     showCv.put(MovieDatabaseHelper.COLUMN_MOVIE, 0)
                     showCv.put(MovieDatabaseHelper.COLUMN_CATEGORIES, MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH)
-                    updateOrInsertMovie(tmdbId, showCv, false, report, rowNumber, showTitle)
+                    updateOrInsertMovie(tmdbId, showCv, false, report, rowNumber, showTitle, source)
                 }
 
                 val finalShowId = movieDbHelper.getMovieRowId(tmdbId, false) ?: return false
@@ -196,7 +196,7 @@ class TraktImporter(private val movieDbHelper: MovieDatabaseHelper) {
         }
     }
 
-    fun processWatchlist(item: JSONObject, report: ImportReport, rowNumber: Int): Boolean {
+    fun processWatchlist(item: JSONObject, report: ImportReport, rowNumber: Int, source: String): Boolean {
         val type = item.optString("type")
         if (type != "movie" && type != "show") return false // only movie/show allowed
 
@@ -219,10 +219,10 @@ class TraktImporter(private val movieDbHelper: MovieDatabaseHelper) {
             cv.put(MovieDatabaseHelper.COLUMN_CATEGORIES, MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH)
         }
 
-        return updateOrInsertMovie(tmdbId, cv, isMovie, report, rowNumber, title)
+        return updateOrInsertMovie(tmdbId, cv, isMovie, report, rowNumber, title, source)
     }
 
-    fun processTagItem(item: JSONObject, tagName: String, report: ImportReport, rowNumber: Int): Boolean {
+    fun processTagItem(item: JSONObject, tagName: String, report: ImportReport, rowNumber: Int, source: String): Boolean {
         val type = item.optString("type")
         if (type != "movie" && type != "show") return false // skip seasons/episodes for tags for now or map to show
 
@@ -243,7 +243,7 @@ class TraktImporter(private val movieDbHelper: MovieDatabaseHelper) {
         val existingRowId = movieDbHelper.getMovieRowId(tmdbId, isMovie)
         if (existingRowId == null) {
             cv.put(MovieDatabaseHelper.COLUMN_CATEGORIES, MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH)
-            updateOrInsertMovie(tmdbId, cv, isMovie, report, rowNumber, title)
+            updateOrInsertMovie(tmdbId, cv, isMovie, report, rowNumber, title, source)
         }
 
         val dbExistingRowId = movieDbHelper.getMovieRowId(tmdbId, isMovie) ?: return false
@@ -269,7 +269,7 @@ class TraktImporter(private val movieDbHelper: MovieDatabaseHelper) {
         return obj.optString("title").takeIf { it.isNotBlank() }
     }
 
-    private fun updateOrInsertMovie(tmdbId: Long, cv: ContentValues, isMovie: Boolean, report: ImportReport, rowNumber: Int, title: String?): Boolean {
+    private fun updateOrInsertMovie(tmdbId: Long, cv: ContentValues, isMovie: Boolean, report: ImportReport, rowNumber: Int, title: String?, source: String): Boolean {
         try {
             // Add a hook to tell the service if this needs a TMDB fetch later or handle it via caller.
             // We will just put a placeholder here that the service checks.
