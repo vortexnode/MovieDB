@@ -582,6 +582,12 @@
     <string name="csv_import_explanation">Как импортировать:\n 1. Выберите CSV файл.\n 2. Если ваш CSV использует разделитель отличный от запятой (,), введите его в поле \'символ разделителя\' (например, ; или |). Нажмите Enter для применения.\n 3. Сопоставьте столбцы CSV с полями базы данных приложения. \'TMDB ID\' обязателен для сопоставления.\n 4. Если в CSV нет столбца, указывающего тип элемента (Фильм или Сериал), выберите тип по умолчанию ниже сопоставлений (Обязательно).\n 5. Нажмите \'Начать импорт\'. Импорт запустится в фоновом режиме.</string>
     <string name="internet_connection_warning">Для автоматического получения недостающих деталей (постеры, описания и т.д.) для импортированных элементов требуется интернет-соединение.</string>
     <string name="csv_import">Импорт CSV</string>
+    <string name="import_report_title">Отчет об импорте</string>
+    <string name="import_report_summary">Всего: %1$d\nДобавлено: %2$d\nОбновлено: %3$d\nПропущено: %4$d\nОшибок: %5$d</string>
+    <string name="error_loading_report">Ошибка загрузки отчета.</string>
+    <string name="csv_file_not_found">CSV файл не найден.</string>
+    <string name="share_import_report">Поделиться CSV отчетом об импорте</string>
+    <string name="export_csv">Экспорт/Поделиться CSV</string>
     <string name="schedule_update">Обновление расписания</string>
     <string name="schedule_monthly_update">Ежемесячное обновление расписания</string>
     <string name="enable_update">Включить обновление</string>
@@ -691,4 +697,5 @@
     <string name="failed_to_restore_database_from_webdav">Не удалось восстановить базу данных из WebDAV</string>
     <string name="webdav_backup_failed">Ошибка резервной копии WebDAV</string>
     <string name="username">Имя пользователя</string>
+    <string name="tmdb_sync_preference_title">Синхронизация с TMDB</string>
 </resources>

@@ -303,6 +303,12 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             true
         }
 
+        val tmdbSyncPreference = findPreference<Preference>("tmdb_sync_key")
+        tmdbSyncPreference?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            val intent = Intent(requireContext(), Class.forName("com.wirelessalien.android.moviedb.activity.TmdbSyncActivity"))
+            startActivity(intent)
+            true
+        }
         findPreference<SwitchPreferenceCompat>("key_get_notified_for_saved")?.let { preference ->
             preference.setOnPreferenceChangeListener { _, newValue ->
                 if (newValue as Boolean) {
