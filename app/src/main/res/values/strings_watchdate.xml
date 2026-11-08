@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="when_was_this_watched">When was this watched?</string>
+    <string name="watch_date_right_now">Right now</string>
+    <string name="watch_date_release_date">Release date</string>
+    <string name="watch_date_another_date">Another date</string>
+    <string name="watch_date_unknown_date">Unknown date</string>
+    <string name="watch_date_start_watching">Start watching</string>
+    <string name="dont_ask_again_watch_date">Don\'t ask again</string>
+    <string name="dont_ask_again_watch_date_note">The current date will always be used. You can change this in settings.</string>
+    <string name="ask_for_watch_date">Ask for watch date</string>
+    <string name="default_watch_date">Default watch date</string>
+    <string name="ask_for_watch_date_summary">Show dialog to select a date when marking item as watched.</string>
+    <string name="watch_date_current_date">Current date</string>
+    <string name="watch_date_release_date_pref">Release date</string>
+</resources>

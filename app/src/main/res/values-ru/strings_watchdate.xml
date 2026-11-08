@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="when_was_this_watched">Когда это было просмотрено?</string>
+    <string name="watch_date_right_now">Прямо сейчас</string>
+    <string name="watch_date_release_date">Дата выхода</string>
+    <string name="watch_date_another_date">Другая дата</string>
+    <string name="watch_date_unknown_date">Неизвестная дата</string>
+    <string name="watch_date_start_watching">Начать просмотр</string>
+    <string name="dont_ask_again_watch_date">Больше не спрашивать</string>
+    <string name="dont_ask_again_watch_date_note">Будет всегда использоваться текущая дата. Вы можете изменить это в настройках.</string>
+    <string name="ask_for_watch_date">Спрашивать дату просмотра</string>
+    <string name="default_watch_date">Дата просмотра по умолчанию</string>
+    <string name="ask_for_watch_date_summary">Показывать диалог выбора даты при отметке элемента как просмотренного.</string>
+    <string name="watch_date_current_date">Текущая дата</string>
+    <string name="watch_date_release_date_pref">Дата выхода</string>
+</resources>

@@ -66,10 +66,12 @@ class RecommendationsAdapter(
         }
 
         holder.itemView.setOnClickListener {
+            val json = com.wirelessalien.android.moviedb.helper.RecommendationIntentHelper.createMovieObjectJson(item)
             val intent = Intent(context, DetailActivity::class.java).apply {
-                putExtra("id", item.tmdbId.toString())
-                putExtra("movie", if (isMovie) 1 else 0)
-                putExtra("isUpdate", false)
+                putExtra("movieObject", json.toString())
+                if (!item.isMovie) {
+                    putExtra("isMovie", false)
+                }
             }
             context.startActivity(intent)
         }

@@ -23,6 +23,7 @@ import android.content.SharedPreferences
 import android.icu.text.SimpleDateFormat
 import android.icu.util.Calendar
 import android.icu.util.TimeZone
+import com.wirelessalien.android.moviedb.helper.WatchDateHelper
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -347,8 +348,6 @@ class SeasonDetailsFragment : Fragment() {
 //                    }
                     R.id.action_watched -> {
                         val adapter = binding.episodeRecyclerView.adapter as EpisodeAdapter?
-                        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
-                            .format(Calendar.getInstance().time)
                         if (adapter != null) {
                             val isGroup = arguments?.getBoolean("isGroup", false) ?: false
                             val episodes = adapter.episodes
@@ -361,23 +360,44 @@ class SeasonDetailsFragment : Fragment() {
                                     break
                                 }
                             }
+
+                            val performUpdate = { dateStr: String ->
+                                if (!allEpisodesInDatabase) {
+                                    for (episode in episodes) {
+                                        val sNum = if (isGroup) episode.seasonNumber else currentTabNumber
+                                        if (!db.isEpisodeInDatabase(tvShowId, sNum, listOf(episode.episodeNumber))) {
+                                            db.addEpisodeNumber(tvShowId, sNum, listOf(episode.episodeNumber), dateStr)
+                                        }
+                                    }
+                                    Toast.makeText(requireContext(), R.string.season_marked_watched, Toast.LENGTH_SHORT).show()
+                                } else {
+                                    for (episode in episodes) {
+                                        val sNum = if (isGroup) episode.seasonNumber else currentTabNumber
+                                        db.removeEpisodeNumber(tvShowId, sNum, listOf(episode.episodeNumber))
+                                    }
+                                    Toast.makeText(requireContext(), R.string.season_marked_unwatched, Toast.LENGTH_SHORT).show()
+                                }
+                                adapter.updateEpisodes(episodes)
+                                adapter.notifyDataSetChanged()
+                            }
+
                             if (!allEpisodesInDatabase) {
-                                for (episode in episodes) {
-                                    val sNum = if (isGroup) episode.seasonNumber else currentTabNumber
-                                    if (!db.isEpisodeInDatabase(tvShowId, sNum, listOf(episode.episodeNumber))) {
-                                        db.addEpisodeNumber(tvShowId, sNum, listOf(episode.episodeNumber), currentDate)
+                                WatchDateHelper.showWatchDateDialog(
+                                    requireContext(),
+                                    tvShowName ?: "",
+                                    null, // season release date not strictly defined per episode easily here
+                                    0
+                                ) { result ->
+                                    when (result) {
+                                        is WatchDateHelper.WatchDateResult.DateSelected -> performUpdate(result.date)
+                                        is WatchDateHelper.WatchDateResult.UnknownDate -> performUpdate("")
+                                        is WatchDateHelper.WatchDateResult.StartWatching -> {}
+                                        is WatchDateHelper.WatchDateResult.Cancelled -> {}
                                     }
                                 }
-                                Toast.makeText(requireContext(), R.string.episodes_removed, Toast.LENGTH_SHORT).show()
                             } else {
-                                for (episode in episodes) {
-                                    val sNum = if (isGroup) episode.seasonNumber else currentTabNumber
-                                    db.removeEpisodeNumber(tvShowId, sNum, listOf(episode.episodeNumber))
-                                }
-                                Toast.makeText(requireContext(), R.string.episodes_added, Toast.LENGTH_SHORT).show()
+                                performUpdate("") // remove doesn't care about date
                             }
-                            adapter.updateEpisodes(episodes)
-                            adapter.notifyDataSetChanged()
                             true
                         } else {
                             false

@@ -19,6 +19,7 @@
  */
 package com.wirelessalien.android.moviedb.activity
 
+import com.wirelessalien.android.moviedb.helper.WatchDateHelper
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.UiModeManager
@@ -934,39 +935,64 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     categoriesDialog.setTitle(getString(R.string.category_picker))
                     categoriesDialog.setItems(R.array.categories) { _: DialogInterface?, which: Int ->
                         val category = getCategoryNumber(which)
-                        showValues.put(
-                            MovieDatabaseHelper.COLUMN_CATEGORIES,
-                            category
-                        )
+                        val finalCategory = category
+                        val isWatchedCategory = (finalCategory == MovieDatabaseHelper.CATEGORY_WATCHED)
 
-                        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(Date())
-                        if (category == MovieDatabaseHelper.CATEGORY_WATCHING) {
-                            showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, currentDate)
-                        } else if (category == MovieDatabaseHelper.CATEGORY_WATCHED) {
-                            showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, currentDate)
-                            showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, currentDate)
-                        }
+                        val proceedWithSave = { c_startDate: String?, c_finishDate: String?, c_category: Int ->
+                            if (c_startDate != null) {
+                                showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, c_startDate)
+                            }
+                            if (c_finishDate != null) {
+                                showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, c_finishDate)
+                            } else if (c_category == MovieDatabaseHelper.CATEGORY_WATCHED) {
+                                showValues.putNull(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE)
+                            }
+                            showValues.put(MovieDatabaseHelper.COLUMN_CATEGORIES, c_category)
 
-                        // Add the show to the database
-                        addMovieToDatabase(showValues)
-                        addItemtoTmdb()
-                        // If the selected category is CATEGORY_WATCHED, add seasons and episodes to the database
-                        if (getCategoryNumber(which) == MovieDatabaseHelper.CATEGORY_WATCHED) {
-                            addSeasonsAndEpisodesToDatabase()
-                            lifecycleScope.launch {
-                                if (!isMovie) {
+                            // Add the show to the database
+                            addMovieToDatabase(showValues)
+                            addItemtoTmdb()
+                            // If the selected category is CATEGORY_WATCHED, add seasons and episodes to the database
+                            if (getCategoryNumber(which) == MovieDatabaseHelper.CATEGORY_WATCHED) {
+                                addSeasonsAndEpisodesToDatabase()
+                                lifecycleScope.launch {
+                                    if (!isMovie) {
+                                        updateEpisodeFragments()
+                                    }
+                                }
+                            }
+                            if (showNextEpisodePref && !isMovie && added) {
+                                lifecycleScope.launch {
                                     updateEpisodeFragments()
                                 }
                             }
+                            binding.fabSave.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                            binding.editIcon.visibility = View.VISIBLE
+                            updatePersonalDetailsViews()
                         }
-                        if (showNextEpisodePref && !isMovie && added) {
-                            lifecycleScope.launch {
-                                updateEpisodeFragments()
+
+                        if (isWatchedCategory) {
+                            val relDate = if (isMovie) movieDataObject.optString("release_date") else movieDataObject.optString("first_air_date")
+                            val rtime = if (isMovie) movieDataObject.optInt("runtime") else movieDataObject.optJSONArray("episode_run_time")?.let { if (it.length() > 0) it.getInt(0) else 0 } ?: 0
+                            WatchDateHelper.showWatchDateDialog(
+                                this@DetailActivity,
+                                showTitle.toString(), relDate, rtime
+                            ) { result ->
+                                when (result) {
+                                    is WatchDateHelper.WatchDateResult.DateSelected -> proceedWithSave(result.date, result.date, finalCategory)
+                                    is WatchDateHelper.WatchDateResult.UnknownDate -> proceedWithSave(null, null, finalCategory)
+                                    is WatchDateHelper.WatchDateResult.StartWatching -> proceedWithSave(WatchDateHelper.getCurrentDate(), null, MovieDatabaseHelper.CATEGORY_WATCHING)
+                                    is WatchDateHelper.WatchDateResult.Cancelled -> {}
+                                }
+                            }
+                        } else {
+                            val currentDate = WatchDateHelper.getCurrentDate()
+                            if (finalCategory == MovieDatabaseHelper.CATEGORY_WATCHING) {
+                                proceedWithSave(currentDate, null, finalCategory)
+                            } else {
+                                proceedWithSave(null, null, finalCategory)
                             }
                         }
-                        binding.fabSave.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                        binding.editIcon.visibility = View.VISIBLE
-                        updatePersonalDetailsViews()
                     }
                     categoriesDialog.show()
                 } else {
@@ -975,7 +1001,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         MovieDatabaseHelper.COLUMN_CATEGORIES,
                         MovieDatabaseHelper.CATEGORY_WATCHING
                     )
-                    val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(Date())
+                    val currentDate = WatchDateHelper.getCurrentDate()
                     showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, currentDate)
                     addMovieToDatabase(showValues)
                     addItemtoTmdb()
@@ -1089,7 +1115,38 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         }
 
         binding.btnAddToTraktHistory.setOnClickListener {
-            showWatchOptionsDialog()
+            if (preferences.getString("sync_provider", "local") == "trakt") {
+                val relDate = if (isMovie) movieDataObject.optString("release_date") else movieDataObject.optString("first_air_date")
+                val rtime = if (isMovie) movieDataObject.optInt("runtime") else movieDataObject.optJSONArray("episode_run_time")?.let { if (it.length() > 0) it.getInt(0) else 0 } ?: 0
+                WatchDateHelper.showWatchDateDialog(
+                    this@DetailActivity,
+                    showTitle.toString(),
+                    relDate,
+                    rtime
+                ) { result ->
+                    when (result) {
+                        is WatchDateHelper.WatchDateResult.DateSelected -> {
+                            val formattedDate = android.icu.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH).apply {
+                                timeZone = android.icu.util.TimeZone.getTimeZone("UTC")
+                            }.format(android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).parse(result.date))
+                            updateMediaObjectWithWatchedAt(formattedDate)
+                        }
+                        is WatchDateHelper.WatchDateResult.UnknownDate -> {
+                            updateMediaObjectWithWatchedAt("")
+                        }
+                        is WatchDateHelper.WatchDateResult.StartWatching -> {
+                            // Checkin to Trakt using current time
+                            val currentDateTime = android.icu.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH).apply {
+                                timeZone = android.icu.util.TimeZone.getTimeZone("UTC")
+                            }.format(Date())
+                            traktCheckin("/checkin", currentDateTime)
+                        }
+                        is WatchDateHelper.WatchDateResult.Cancelled -> {}
+                    }
+                }
+            } else {
+                showWatchOptionsDialog()
+            }
         }
 
         binding.btnAddToTraktCollection.setOnClickListener {
@@ -3090,44 +3147,72 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 val category = getCategoryNumber(position)
 
                 if (cursor.moveToFirst()) {
+                    val proceedWithCategorySave = { c_startDate: String?, c_finishDate: String?, c_category: Int ->
+                        if (c_startDate != null) {
+                            showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, c_startDate)
+                            binding.startDateButton.text = c_startDate
+                            binding.movieStartDate.text = getString(R.string.start_date, c_startDate)
+                        }
+                        if (c_finishDate != null) {
+                            showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, c_finishDate)
+                            binding.endDateButton.text = c_finishDate
+                            binding.movieFinishDate.text = getString(R.string.finish_date, c_finishDate)
+                        } else if (c_category == MovieDatabaseHelper.CATEGORY_WATCHED) {
+                            showValues.putNull(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE)
+                            binding.endDateButton.text = getString(R.string.episode_rating_db_not_set).split(":")[1].trim()
+                            binding.movieFinishDate.text = getString(R.string.finish_date, getString(R.string.episode_rating_db_not_set).split(":")[1].trim())
+                        }
+
+                        showValues.put(MovieDatabaseHelper.COLUMN_CATEGORIES, c_category)
+
+                        // Check if the show is already watched and if the user changed the category.
+                        if (c_category == MovieDatabaseHelper.CATEGORY_WATCHED && cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES)) != c_category) {
+
+                            // If the user hasn't set their own watched value, automatically set it.
+                            val timesWatchedCount = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED))
+                            if (timesWatchedCount == 0) { showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED, 1)
+                                binding.timesWatched.setText("1")
+                            }
+
+                            // Fetch seasons data and add to database if category is changed to "watched"
+                            lifecycleScope.launch {
+                                fetchMovieDetailsCoroutine()
+                                addSeasonsAndEpisodesToDatabase()
+                            }
+                        }
+
+                        database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues, MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null)
+                        database.close()
+                    }
+
                     if (category == MovieDatabaseHelper.CATEGORY_WATCHING) {
-                        if (cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)) == null) {
-                            showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, currentDate)
-                            binding.startDateButton.text = currentDate
-                            binding.movieStartDate.text = getString(R.string.start_date, currentDate)
+                        val currentStartDate = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
+                        if (currentStartDate == null) {
+                            proceedWithCategorySave(currentDate, null, category)
+                        } else {
+                            proceedWithCategorySave(null, null, category)
                         }
                     } else if (category == MovieDatabaseHelper.CATEGORY_WATCHED) {
-                        val startDate = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
-                        if (startDate == null) {
-                            showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, currentDate)
-                            binding.startDateButton.text = currentDate
-                            binding.movieStartDate.text = getString(R.string.start_date, currentDate)
+                        val currentStartDate = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
+                        val relDate = if (isMovie) movieDataObject.optString("release_date") else movieDataObject.optString("first_air_date")
+                        val rtime = if (isMovie) movieDataObject.optInt("runtime") else movieDataObject.optJSONArray("episode_run_time")?.let { if (it.length() > 0) it.getInt(0) else 0 } ?: 0
+                        WatchDateHelper.showWatchDateDialog(
+                            this@DetailActivity,
+                            showTitle.toString(), relDate, rtime
+                        ) { result ->
+                            when (result) {
+                                is WatchDateHelper.WatchDateResult.DateSelected -> proceedWithCategorySave(currentStartDate ?: result.date, result.date, category)
+                                is WatchDateHelper.WatchDateResult.UnknownDate -> proceedWithCategorySave(currentStartDate, null, category)
+                                is WatchDateHelper.WatchDateResult.StartWatching -> proceedWithCategorySave(currentStartDate ?: WatchDateHelper.getCurrentDate(), null, MovieDatabaseHelper.CATEGORY_WATCHING)
+                                is WatchDateHelper.WatchDateResult.Cancelled -> database.close()
+                            }
                         }
-                        showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, currentDate)
-                        binding.endDateButton.text = currentDate
-                        binding.movieFinishDate.text = getString(R.string.finish_date, currentDate)
+                    } else {
+                        proceedWithCategorySave(null, null, category)
                     }
-
-                    // Check if the show is already watched and if the user changed the category.
-                    if (getCategoryNumber(position) == 1 && cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES)) != getCategoryNumber(position)) {
-
-                        // If the user hasn't set their own watched value, automatically set it.
-                        val timesWatchedCount = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED))
-                        if (timesWatchedCount == 0) { showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED, 1)
-                            binding.timesWatched.setText("1")
-                        }
-
-                        // Fetch seasons data and add to database if category is changed to "watched"
-                        lifecycleScope.launch {
-                            fetchMovieDetailsCoroutine()
-                            addSeasonsAndEpisodesToDatabase()
-                        }
-                    }
+                } else {
+                    database.close()
                 }
-
-                showValues.put(MovieDatabaseHelper.COLUMN_CATEGORIES, getCategoryNumber(position))
-                database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues, MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null)
-                database.close()
             }
 
             // Initialize step size from SharedPreferences

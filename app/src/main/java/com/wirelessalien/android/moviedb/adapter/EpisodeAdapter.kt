@@ -67,6 +67,7 @@ import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.WatchDateHelper
 import com.wirelessalien.android.moviedb.tmdb.account.AddEpisodeRating
 import com.wirelessalien.android.moviedb.tmdb.account.DeleteEpisodeRating
 import com.wirelessalien.android.moviedb.tmdb.account.GetAccountStateTvSeason
@@ -343,7 +344,6 @@ class EpisodeAdapter(
             holder.binding.btnAddToTraktHistory.text = context.getText(R.string.history)
         }
 
-        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(Calendar.getInstance().time)
         try {
             MovieDatabaseHelper(context).use { db ->
                 if (db.isEpisodeInDatabase(tvShowId, seasonNumber, listOf(episode.episodeNumber))) {
@@ -352,6 +352,22 @@ class EpisodeAdapter(
                     holder.binding.btnWatchedToLocalDb.icon = AppCompatResources.getDrawable(context, R.drawable.ic_visibility_off)
                 }
                 holder.binding.btnWatchedToLocalDb.setOnClickListener {
+                    val proceedAdd = { dateStr: String ->
+                        db.addEpisodeNumber(tvShowId, seasonNumber, listOf(episode.episodeNumber), dateStr)
+                        holder.binding.btnWatchedToLocalDb.icon = AppCompatResources.getDrawable(context, R.drawable.ic_visibility)
+                        val formattedDate = if (dateStr.isNotEmpty()) {
+                            try {
+                                val parsed = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).parse(dateStr)
+                                DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault()).format(parsed)
+                            } catch (e: Exception) { dateStr }
+                        } else ""
+                        if (formattedDate.isNotEmpty()) {
+                            holder.binding.watchedDate.text = context.getString(R.string.watched_on) + " " + formattedDate
+                        } else {
+                            holder.binding.watchedDate.text = context.getString(R.string.watched_on) + " " + context.getString(R.string.watch_date_unknown_date)
+                        }
+                    }
+
                     // If the episode is in the database, remove it
                     if (db.isEpisodeInDatabase(tvShowId, seasonNumber, listOf(episode.episodeNumber))) {
                         db.removeEpisodeNumber(tvShowId, seasonNumber, listOf(episode.episodeNumber))
@@ -360,11 +376,19 @@ class EpisodeAdapter(
                         holder.binding.watchedDate.text = context.getString(R.string.watched_on_not_set)
                     } else {
                         // If the episode is not in the database, add it
-                        db.addEpisodeNumber(tvShowId, seasonNumber, listOf(episode.episodeNumber), currentDate)
-
-                        holder.binding.btnWatchedToLocalDb.icon = AppCompatResources.getDrawable(context, R.drawable.ic_visibility)
-                        val formattedDate = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault()).format(Calendar.getInstance().time)
-                        holder.binding.watchedDate.text = context.getString(R.string.watched_on) + " " + formattedDate
+                        WatchDateHelper.showWatchDateDialog(
+                            context,
+                            episode.name ?: "",
+                            episode.airDate,
+                            episode.runtime
+                        ) { result ->
+                            when (result) {
+                                is WatchDateHelper.WatchDateResult.DateSelected -> proceedAdd(result.date)
+                                is WatchDateHelper.WatchDateResult.UnknownDate -> proceedAdd("")
+                                is WatchDateHelper.WatchDateResult.StartWatching -> {}
+                                is WatchDateHelper.WatchDateResult.Cancelled -> {}
+                            }
+                        }
                     }
                 }
             }
@@ -484,7 +508,7 @@ class EpisodeAdapter(
                 formatDialog.show()
 
                 formatBinding.btnCurrentDate.setOnClickListener {
-                    binding.dateTextView.text = Editable.Factory.getInstance().newEditable(currentDate)
+                    binding.dateTextView.text = Editable.Factory.getInstance().newEditable(WatchDateHelper.getCurrentDate())
                     formatDialog.dismiss()
                 }
 

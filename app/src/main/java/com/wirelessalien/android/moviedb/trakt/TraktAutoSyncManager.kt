@@ -99,23 +99,26 @@ class TraktAutoSyncManager(val context: Context) {
                             calendar.get(Calendar.DAY_OF_MONTH)
                         )
 
-                        // Use current date if watchedDate is null, otherwise process watchedDate
-                        val date = when {
-                            watchedDate == null -> currentDate
-                            watchedDate.endsWith("-00-00") -> "${watchedDate.take(4)}-$defaultDate"
-                            watchedDate.endsWith("-00") -> "${watchedDate.substring(0, 7)}-01"
-                            else -> watchedDate
+                        // If watchedDate is empty (Unknown Date), we do not set watched_at
+                        if (watchedDate.isNullOrEmpty()) {
+                            ""
+                        } else {
+                            val date = when {
+                                watchedDate.endsWith("-00-00") -> "${watchedDate.take(4)}-$defaultDate"
+                                watchedDate.endsWith("-00") -> "${watchedDate.substring(0, 7)}-01"
+                                else -> watchedDate
+                            }
+
+                            // Get current time
+                            val time = String.format(
+                                "%02d:%02d:%02d",
+                                calendar.get(Calendar.HOUR_OF_DAY),
+                                calendar.get(Calendar.MINUTE),
+                                calendar.get(Calendar.SECOND)
+                            )
+
+                            "${date}T${time}.000Z"
                         }
-
-                        // Get current time
-                        val time = String.format(
-                            "%02d:%02d:%02d",
-                            calendar.get(Calendar.HOUR_OF_DAY),
-                            calendar.get(Calendar.MINUTE),
-                            calendar.get(Calendar.SECOND)
-                        )
-
-                        "${date}T${time}.000Z"
                     }
 
                     mediaObjects.add(
@@ -139,7 +142,9 @@ class TraktAutoSyncManager(val context: Context) {
 
         mediaObjects.forEach { media ->
             val mediaJson = JSONObject().apply {
-                put("watched_at", media.watchedAt)
+                if (!media.watchedAt.isNullOrEmpty()) {
+                    put("watched_at", media.watchedAt)
+                }
                 put("title", media.title)
                 put("year", media.releaseDate.toInt())
                 put("ids", JSONObject().apply {
