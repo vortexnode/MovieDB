@@ -35,10 +35,21 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.MainActivity
+import android.os.Environment
+import com.google.gson.Gson
+import com.wirelessalien.android.moviedb.activity.ImportReportActivity
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.CsvParserUtil
+import com.wirelessalien.android.moviedb.helper.ImportIssue
+import com.wirelessalien.android.moviedb.helper.ImportReason
+import com.wirelessalien.android.moviedb.helper.ImportReport
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.RateLimiter
+import java.io.File
+import java.io.FileWriter
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -148,6 +159,7 @@ class ImportService : Service() {
     private suspend fun processImport(fileUri: Uri, headerMapping: Map<String, String>, delimiter: Char, defaultIsMovieType: Int?) {
         var processedRows = 0
         var totalRowsEstimate = 0
+        val report = ImportReport()
 
         try {
             applicationContext.contentResolver.openInputStream(fileUri)?.use { inputStream ->
@@ -282,6 +294,7 @@ class ImportService : Service() {
                             }
                         } else {
                             Log.w(TAG, "Failed to fetch or parse TMDB data for ID $tmdbIdFromCsv.")
+                            report.issues.add(ImportIssue(processedRows, titleFromCsv, tmdbIdFromCsv, ImportReason.TMDB_FETCH_FAILED, "Failed to fetch or parse TMDB data for ID $tmdbIdFromCsv."))
                         }
                     }
                 }
@@ -291,10 +304,14 @@ class ImportService : Service() {
 
                 if ((finalTmdbId == null || finalTmdbId == 0L) && (finalTitle.isNullOrBlank() || finalTitle == "N/A") ) {
                     Log.w(TAG, "Skipping insert for row due to missing TMDB ID and valid Title after all processing: $contentValues")
+                    report.skipped++
+                    report.issues.add(ImportIssue(processedRows, finalTitle, finalTmdbId, ImportReason.MISSING_TMDB_ID, "Missing TMDB ID and valid Title"))
                     return@processCsvWithMapping
                 }
                 if (finalTitle.isNullOrBlank() || finalTitle == "N/A") {
                     Log.w(TAG, "Skipping insert for TMDB ID $finalTmdbId due to missing valid Title after all processing: $contentValues")
+                    report.skipped++
+                    report.issues.add(ImportIssue(processedRows, finalTitle, finalTmdbId, ImportReason.MISSING_TITLE, "Missing valid Title"))
                     return@processCsvWithMapping
                 }
 
@@ -351,10 +368,12 @@ class ImportService : Service() {
                             // Update existing movie
                             val updatedRows = db.update(MovieDatabaseHelper.TABLE_MOVIES, movieCV, "${MovieDatabaseHelper.COLUMN_ID} = ?", arrayOf(existingMovieRowId.toString()))
                             Log.d(TAG, "Updated movie: ${movieCV.getAsString(MovieDatabaseHelper.COLUMN_TITLE)}, Rows updated: $updatedRows")
+                            report.updated++
                         } else {
                             // Insert new movie
                             val result = db.insert(MovieDatabaseHelper.TABLE_MOVIES, null, movieCV)
                             Log.d(TAG, "Inserted movie: ${movieCV.getAsString(MovieDatabaseHelper.COLUMN_TITLE)}, Result ID: $result")
+                            report.inserted++
                         }
 
                         if (hasEpisodeData &&
@@ -391,20 +410,53 @@ class ImportService : Service() {
                     db.setTransactionSuccessful()
                 } catch (e: Exception) {
                     Log.e(TAG, "Error inserting row into database: $mappedRow", e)
+                    report.failed++
+                    report.issues.add(ImportIssue(processedRows, contentValues.getAsString(MovieDatabaseHelper.COLUMN_TITLE), contentValues.getAsLong(MovieDatabaseHelper.COLUMN_MOVIES_ID), ImportReason.DB_ERROR, e.message))
                 } finally {
                     db.endTransaction()
                 }
 
             } catch (e: Exception) {
                 Log.e(TAG, "Error processing mapped row $processedRows: $mappedRow", e)
+                report.failed++
+                report.issues.add(ImportIssue(processedRows, mappedRow[MovieDatabaseHelper.COLUMN_TITLE], mappedRow[MovieDatabaseHelper.COLUMN_MOVIES_ID]?.toLongOrNull(), ImportReason.INVALID_VALUE, e.message))
             }
         }
 
+        report.total = processedRows
+
+        var reportJsonPath: String? = null
+        var reportCsvPath: String? = null
+        try {
+            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            val downloadsDir = applicationContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+                ?: Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                ?: applicationContext.filesDir
+
+            val jsonFile = File(downloadsDir, "import_report_$timestamp.json")
+            val csvFile = File(downloadsDir, "import_report_$timestamp.csv")
+
+            FileWriter(jsonFile).use { writer ->
+                writer.write(Gson().toJson(report))
+            }
+            reportJsonPath = jsonFile.absolutePath
+
+            FileWriter(csvFile).use { writer ->
+                writer.append("row,title,tmdb_id,status,reason,detailMessage\n")
+                report.issues.forEach { issue ->
+                    writer.append("${issue.rowNumber},\"${issue.title?.replace("\"", "\"\"") ?: ""}\",${issue.tmdbId ?: ""},FAILED/SKIPPED,${issue.reason.name},\"${issue.detailMessage?.replace("\"", "\"\"") ?: ""}\"\n")
+                }
+            }
+            reportCsvPath = csvFile.absolutePath
+        } catch (e: Exception) {
+            Log.e(TAG, "Error saving import reports", e)
+        }
+
         if (success) {
-            updateNotification(getString(R.string.import_complete), processedRows, if(totalRowsEstimate < processedRows) processedRows else totalRowsEstimate , true)
+            updateNotification(getString(R.string.import_complete), processedRows, if(totalRowsEstimate < processedRows) processedRows else totalRowsEstimate , isFinished = true, reportPath = reportJsonPath, reportCsvPath = reportCsvPath)
             Log.i(TAG, "Import completed. Processed $processedRows rows.")
         } else {
-            updateNotification(getString(R.string.import_failed_or_finished_with_errors), processedRows, totalRowsEstimate, isFinished = true, isError = true)
+            updateNotification(getString(R.string.import_failed_or_finished_with_errors), processedRows, totalRowsEstimate, isFinished = true, isError = true, reportPath = reportJsonPath, reportCsvPath = reportCsvPath)
             Log.e(TAG, "Import failed or finished with errors.")
         }
         // Delay stopping foreground and service to allow user to see final notification
@@ -427,9 +479,19 @@ class ImportService : Service() {
         }
     }
 
-    private fun createNotification(contentText: String, progress: Int, maxProgress: Int, isFinished: Boolean = false, isError: Boolean = false): Notification {
-        val intent = Intent(this, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+    private fun createNotification(contentText: String, progress: Int, maxProgress: Int, isFinished: Boolean = false, isError: Boolean = false, reportPath: String? = null, reportCsvPath: String? = null): Notification {
+        val intent = if (isFinished && reportPath != null) {
+            Intent(this, ImportReportActivity::class.java).apply {
+                putExtra("report_json_path", reportPath)
+                putExtra("report_csv_path", reportCsvPath)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+        } else {
+            Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+        }
+
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
         val title = when {
@@ -454,8 +516,8 @@ class ImportService : Service() {
         return builder.build()
     }
 
-    private fun updateNotification(contentText: String, progress: Int, maxProgress: Int, isFinished: Boolean = false, isError: Boolean = false) {
-        notificationManager.notify(NOTIFICATION_ID, createNotification(contentText, progress, maxProgress, isFinished, isError))
+    private fun updateNotification(contentText: String, progress: Int, maxProgress: Int, isFinished: Boolean = false, isError: Boolean = false, reportPath: String? = null, reportCsvPath: String? = null) {
+        notificationManager.notify(NOTIFICATION_ID, createNotification(contentText, progress, maxProgress, isFinished, isError, reportPath, reportCsvPath))
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

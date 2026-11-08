@@ -314,6 +314,12 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                         startActivity(intent)
                         true
                     }
+                    R.id.action_moviebase_import -> {
+                        val intent = Intent(requireContext().applicationContext, com.wirelessalien.android.moviedb.activity.MoviebaseImportActivity::class.java)
+                        startActivity(intent)
+                        true
+                    }
+
 
                     R.id.action_auto_sync -> {
                         showTraktSyncDialog()
