@@ -61,6 +61,35 @@ class MoviebaseImportMappingTest {
         assertEquals(2, report.issues[0].rowNumber)
     }
 
+    @Test
+    fun testExponentialBackoffHelperLoop() {
+        var attempts = 0
+        var success = false
+        var retries = 5
+        var delayMs = 10L // Keep delay low for testing
+
+        while (retries > 0 && !success) {
+            attempts++
+            try {
+                if (attempts < 3) {
+                    throw android.database.sqlite.SQLiteDatabaseLockedException("Database is locked")
+                }
+                success = true
+            } catch (e: android.database.sqlite.SQLiteDatabaseLockedException) {
+                retries--
+                if (retries == 0) throw e
+                try {
+                    Thread.sleep(delayMs)
+                } catch (ie: InterruptedException) {}
+                delayMs *= 2
+            }
+        }
+
+        assertEquals(3, attempts)
+        assertEquals(true, success)
+        assertEquals(3, retries)
+    }
+
     private fun convertDate(isoDate: String?): String? {
         if (isoDate.isNullOrBlank()) return null
         return try {

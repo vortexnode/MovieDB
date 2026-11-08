@@ -25,6 +25,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -62,6 +63,13 @@ class UpNextFragment : BottomSheetDialogFragment() {
 
         setupRecyclerView()
         loadUpNextEpisodes()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        if (::dbHelper.isInitialized) {
+            dbHelper.close()
+        }
     }
 
     private fun setupRecyclerView() {
@@ -116,39 +124,57 @@ class UpNextFragment : BottomSheetDialogFragment() {
         }
     }
 
-    private fun getWatchingShows(): List<JSONObject> {
+    private suspend fun getWatchingShows(): List<JSONObject> {
         val shows = mutableListOf<JSONObject>()
-        dbHelper.readableDatabase.use { db ->
-            val cursor = db.query(
-                MovieDatabaseHelper.TABLE_MOVIES,
-                arrayOf(
-                    MovieDatabaseHelper.COLUMN_MOVIES_ID,
-                    MovieDatabaseHelper.COLUMN_TITLE
-                ),
-                "${MovieDatabaseHelper.COLUMN_CATEGORIES} = ? AND ${MovieDatabaseHelper.COLUMN_MOVIE} = ?",
-                arrayOf(MovieDatabaseHelper.CATEGORY_WATCHING.toString(), "0"),
-                null, null, null
-            )
+        var retries = 5
+        var delayMs = 100L
 
-            if (cursor.moveToFirst()) {
-                do {
-                    val showId = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIES_ID))
-                    val showTitle = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_TITLE))
+        while (retries > 0) {
+            var cursor: android.database.Cursor? = null
+            try {
+                // Avoid using .use { } on readableDatabase so we don't tear down the DB connection repeatedly.
+                val db = dbHelper.readableDatabase
+                cursor = db.query(
+                    MovieDatabaseHelper.TABLE_MOVIES,
+                    arrayOf(
+                        MovieDatabaseHelper.COLUMN_MOVIES_ID,
+                        MovieDatabaseHelper.COLUMN_TITLE
+                    ),
+                    "${MovieDatabaseHelper.COLUMN_CATEGORIES} = ? AND ${MovieDatabaseHelper.COLUMN_MOVIE} = ?",
+                    arrayOf(MovieDatabaseHelper.CATEGORY_WATCHING.toString(), "0"),
+                    null, null, null
+                )
 
-                    val watchedEpisodes = getWatchedEpisodesForShow(db, showId)
-                    val lastWatchedDate = getLastWatchedDateForShow(db, showId)
+                if (cursor.moveToFirst()) {
+                    do {
+                        val showId = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIES_ID))
+                        val showTitle = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_TITLE))
 
-                    val watchedEpisodesAsStringKeys = watchedEpisodes.mapKeys { it.key.toString() }
+                        val watchedEpisodes = getWatchedEpisodesForShow(db, showId)
+                        val lastWatchedDate = getLastWatchedDateForShow(db, showId)
 
-                    shows.add(JSONObject().apply {
-                        put(ShowBaseAdapter.KEY_ID, showId)
-                        put(ShowBaseAdapter.KEY_TITLE, showTitle)
-                        put("watched_episodes", JSONObject(watchedEpisodesAsStringKeys))
-                        put("last_watched_date", lastWatchedDate)
-                    })
-                } while (cursor.moveToNext())
+                        val watchedEpisodesAsStringKeys = watchedEpisodes.mapKeys { it.key.toString() }
+
+                        shows.add(JSONObject().apply {
+                            put(ShowBaseAdapter.KEY_ID, showId)
+                            put(ShowBaseAdapter.KEY_TITLE, showTitle)
+                            put("watched_episodes", JSONObject(watchedEpisodesAsStringKeys))
+                            put("last_watched_date", lastWatchedDate)
+                        })
+                    } while (cursor.moveToNext())
+                }
+                cursor.close()
+                return shows
+            } catch (e: android.database.sqlite.SQLiteDatabaseLockedException) {
+                cursor?.close()
+                retries--
+                if (retries == 0) throw e
+                kotlinx.coroutines.delay(delayMs)
+                delayMs *= 2
+            } catch (e: Exception) {
+                cursor?.close()
+                throw e
             }
-            cursor.close()
         }
         return shows
     }
@@ -183,7 +209,7 @@ class UpNextFragment : BottomSheetDialogFragment() {
         return watchedEpisodes
     }
 
-    private fun getNextEpisode(show: JSONObject): UpNextAdapter.UpNextItem? {
+    private suspend fun getNextEpisode(show: JSONObject): UpNextAdapter.UpNextItem? {
         val showId = show.optInt(ShowBaseAdapter.KEY_ID)
         val showName = show.optString(ShowBaseAdapter.KEY_TITLE)
         val lastWatchedDate = show.optString("last_watched_date")
@@ -234,35 +260,69 @@ class UpNextFragment : BottomSheetDialogFragment() {
         val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 
         lifecycleScope.launch(Dispatchers.IO) {
-            dbHelper.addEpisodeNumber(showId, seasonNumber, listOf(episodeNumber), currentDate)
+            var retries = 5
+            var delayMs = 100L
+            var nextEpisode: UpNextAdapter.UpNextItem? = null
+            var success = false
+            var addedEpisode = false
 
-            val nextEpisode = getNextEpisodeAfter(showId, seasonNumber, episodeNumber)
+            while (retries > 0 && !success) {
+                try {
+                    if (!addedEpisode) {
+                        dbHelper.addEpisodeNumber(showId, seasonNumber, listOf(episodeNumber), currentDate)
+                        addedEpisode = true
+                    }
 
-            if (nextEpisode == null) {
-                dbHelper.updateMovieCategory(showId, MovieDatabaseHelper.CATEGORY_WATCHED)
-                dbHelper.updateMovieFinishDate(showId, currentDate)
+                    nextEpisode = getNextEpisodeAfter(showId, seasonNumber, episodeNumber)
+
+                    if (nextEpisode == null) {
+                        dbHelper.updateMovieCategory(showId, MovieDatabaseHelper.CATEGORY_WATCHED)
+                        dbHelper.updateMovieFinishDate(showId, currentDate)
+                    }
+                    success = true
+                } catch (e: android.database.sqlite.SQLiteDatabaseLockedException) {
+                    retries--
+                    if (retries == 0) {
+                        // Let crash bubble or break out if we cannot write. The user can retry later.
+                        break
+                    }
+                    kotlinx.coroutines.delay(delayMs)
+                    delayMs *= 2
+                } catch (e: Exception) {
+                    if (e is IllegalStateException) {
+                        // view is likely destroyed and helper is closed
+                        break
+                    }
+                    throw e
+                }
             }
 
-            withContext(Dispatchers.Main) {
-                if (nextEpisode != null) {
-                    val position = adapter.upNextList.indexOfFirst {
-                        it.showId == showId &&
-                                it.seasonNumber == seasonNumber &&
-                                it.episodeNumber == episodeNumber
-                    }
+            if (!isAdded || view == null) return@launch
 
-                    if (position != -1) {
-                        adapter.replaceItem(position, nextEpisode)
+            withContext(Dispatchers.Main) {
+                if (success) {
+                    if (nextEpisode != null) {
+                        val position = adapter.upNextList.indexOfFirst {
+                            it.showId == showId &&
+                                    it.seasonNumber == seasonNumber &&
+                                    it.episodeNumber == episodeNumber
+                        }
+
+                        if (position != -1) {
+                            adapter.replaceItem(position, nextEpisode)
+                        }
+                    } else {
+                        val position = adapter.upNextList.indexOfFirst {
+                            it.showId == showId &&
+                                    it.seasonNumber == seasonNumber &&
+                                    it.episodeNumber == episodeNumber
+                        }
+                        if (position != -1) {
+                            adapter.removeItem(position)
+                        }
                     }
                 } else {
-                    val position = adapter.upNextList.indexOfFirst {
-                        it.showId == showId &&
-                                it.seasonNumber == seasonNumber &&
-                                it.episodeNumber == episodeNumber
-                    }
-                    if (position != -1) {
-                        adapter.removeItem(position)
-                    }
+                    Toast.makeText(requireContext(), "Failed to update episode. Please try again later.", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -288,9 +348,9 @@ class UpNextFragment : BottomSheetDialogFragment() {
         return lastWatchedDate
     }
 
-    private fun getNextEpisodeAfter(showId: Int, seasonNumber: Int, episodeNumber: Int): UpNextAdapter.UpNextItem? {
+    private suspend fun getNextEpisodeAfter(showId: Int, seasonNumber: Int, episodeNumber: Int): UpNextAdapter.UpNextItem? {
         val showName = getShowName(showId) ?: return null
-        val lastWatchedDate = dbHelper.readableDatabase.use { getLastWatchedDateForShow(it, showId) }
+        val lastWatchedDate = getLastWatchedDateForShow(dbHelper.readableDatabase, showId)
 
         val allEpisodesBySeason = getAllEpisodesBySeasonFromTmdbDatabase(showId)
         val episodes = allEpisodesBySeason[seasonNumber]?.sorted() ?: emptyList()
@@ -328,54 +388,73 @@ class UpNextFragment : BottomSheetDialogFragment() {
     }
 
     private fun getShowName(showId: Int): String? {
-        dbHelper.readableDatabase.use { db ->
-            val cursor = db.query(
-                MovieDatabaseHelper.TABLE_MOVIES,
-                arrayOf(MovieDatabaseHelper.COLUMN_TITLE),
-                "${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ?",
-                arrayOf(showId.toString()),
-                null, null, null
-            )
-
-            return if (cursor.moveToFirst()) {
-                cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_TITLE))
-            } else {
-                null
-            }.also { cursor.close() }
-        }
-    }
-
-    private fun getAllEpisodesBySeasonFromTmdbDatabase(showId: Int): Map<Int, List<Int>> {
-        val dbHelper = TmdbDetailsDatabaseHelper(requireContext())
         val db = dbHelper.readableDatabase
         val cursor = db.query(
-            TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
-            arrayOf(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB),
-            "${TmdbDetailsDatabaseHelper.COL_TMDB_ID} = ?",
+            MovieDatabaseHelper.TABLE_MOVIES,
+            arrayOf(MovieDatabaseHelper.COLUMN_TITLE),
+            "${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ?",
             arrayOf(showId.toString()),
             null, null, null
         )
-        val result = if (cursor.moveToFirst()) {
-            val seasonsString = cursor.getString(cursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB))
-            val regex = Regex("""(\d+)\{([\d,]*)\}""")
-            val map = mutableMapOf<Int, List<Int>>()
-            regex.findAll(seasonsString).forEach { matchResult ->
-                val season = matchResult.groupValues[1].toInt()
-                val episodesStr = matchResult.groupValues[2]
-                val episodes = if (episodesStr.isNotEmpty()) {
-                    episodesStr.split(",").mapNotNull { it.toIntOrNull() }
-                } else {
-                    emptyList()
-                }
-                map[season] = episodes
-            }
-            map
+
+        return if (cursor.moveToFirst()) {
+            cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_TITLE))
         } else {
-            emptyMap()
+            null
+        }.also { cursor.close() }
+    }
+
+    private suspend fun getAllEpisodesBySeasonFromTmdbDatabase(showId: Int): Map<Int, List<Int>> {
+        var retries = 5
+        var delayMs = 100L
+        while (retries > 0) {
+            var tmdbHelper: TmdbDetailsDatabaseHelper? = null
+            var cursor: android.database.Cursor? = null
+            try {
+                tmdbHelper = TmdbDetailsDatabaseHelper(requireContext())
+                val db = tmdbHelper.readableDatabase
+                cursor = db.query(
+                    TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
+                    arrayOf(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB),
+                    "${TmdbDetailsDatabaseHelper.COL_TMDB_ID} = ?",
+                    arrayOf(showId.toString()),
+                    null, null, null
+                )
+                val result = if (cursor.moveToFirst()) {
+                    val seasonsString = cursor.getString(cursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB))
+                    val regex = Regex("""(\d+)\{([\d,]*)\}""")
+                    val map = mutableMapOf<Int, List<Int>>()
+                    regex.findAll(seasonsString).forEach { matchResult ->
+                        val season = matchResult.groupValues[1].toInt()
+                        val episodesStr = matchResult.groupValues[2]
+                        val episodes = if (episodesStr.isNotEmpty()) {
+                            episodesStr.split(",").mapNotNull { it.toIntOrNull() }
+                        } else {
+                            emptyList()
+                        }
+                        map[season] = episodes
+                    }
+                    map
+                } else {
+                    emptyMap()
+                }
+                cursor.close()
+                tmdbHelper.close()
+                return result
+            } catch (e: android.database.sqlite.SQLiteDatabaseLockedException) {
+                cursor?.close()
+                tmdbHelper?.close()
+                retries--
+                if (retries == 0) throw e
+                kotlinx.coroutines.delay(delayMs)
+                delayMs *= 2
+            } catch (e: Exception) {
+                cursor?.close()
+                tmdbHelper?.close()
+                throw e
+            }
         }
-        cursor.close()
-        db.close()
-        return result
+        return emptyMap()
     }
 
 }
