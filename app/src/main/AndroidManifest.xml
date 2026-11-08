@@ -151,10 +151,12 @@
         <provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.provider" android:exported="false" android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/provider_paths" />
         </provider>
-        <activity android:name=".activity.MoviebaseImportActivity" android:exported="false" />
+        <activity android:name=".activity.MoviebaseImportActivity" android:exported="false" android:theme="@style/AppTheme" />
+<activity android:name=".activity.TraktImportActivity" android:exported="false" android:theme="@style/AppTheme" />
+<service android:name=".service.TraktImportService" android:exported="false" android:foregroundServiceType="dataSync" />
         <service android:name=".service.MoviebaseImportService" android:exported="false" android:foregroundServiceType="dataSync" />
-        <service android:name=".service.TmdbSyncService" android:foregroundServiceType="dataSync"/>
-        <activity android:name=".activity.TmdbSyncActivity" android:theme="@style/AppTheme" />
+        <service android:name=".service.TmdbSyncService" android:exported="false" android:foregroundServiceType="dataSync" />
+        <activity android:name=".activity.TmdbSyncActivity" android:exported="false" android:theme="@style/AppTheme" />
     </application>
     <queries>
         <package android:name="com.netflix.mediaclient" />
