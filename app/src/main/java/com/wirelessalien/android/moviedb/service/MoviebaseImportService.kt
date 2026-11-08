@@ -88,6 +88,7 @@ class MoviebaseImportService : Service() {
     private suspend fun processImport(fileUri: Uri, isZip: Boolean) {
         var processedRows = 0
         val report = ImportReport()
+        report.total = 0
 
         try {
             if (isZip) {
@@ -154,7 +155,7 @@ class MoviebaseImportService : Service() {
             } catch (e: Exception) {
                 Log.e(TAG, "Error handling row in $fileName", e)
                 report.failed++
-                report.issues.add(ImportIssue(report.total + 1, cleanedRowValues["title"], cleanedRowValues["tmdb_id"]?.toLongOrNull(), ImportReason.INVALID_VALUE, e.message))
+                report.issues.add(ImportIssue(report.total, cleanedRowValues["title"], cleanedRowValues["tmdb_id"]?.toLongOrNull(), ImportReason.INVALID_VALUE, e.message))
             }
         }
         // Don't close csvReader as it will close the underlying InputStream (bad for ZipInputStream)
@@ -167,7 +168,7 @@ class MoviebaseImportService : Service() {
 
         if (tmdbId == null) {
             report.skipped++
-            report.issues.add(ImportIssue(report.total + 1, row["title"], null, ImportReason.MISSING_TMDB_ID, "No tmdb_id found"))
+            report.issues.add(ImportIssue(report.total, row["title"], null, ImportReason.MISSING_TMDB_ID, "No tmdb_id found"))
             return
         }
 
@@ -273,7 +274,7 @@ class MoviebaseImportService : Service() {
             db.setTransactionSuccessful()
         } catch (e: Exception) {
             report.failed++
-            report.issues.add(ImportIssue(report.total + 1, title, tmdbId, ImportReason.DB_ERROR, e.message))
+            report.issues.add(ImportIssue(report.total, title, tmdbId, ImportReason.DB_ERROR, e.message))
         } finally {
             db.endTransaction()
         }
@@ -286,7 +287,7 @@ class MoviebaseImportService : Service() {
 
         if (type == "season") {
             report.skipped++
-            report.issues.add(ImportIssue(report.total + 1, row["title"], tmdbId, ImportReason.INVALID_VALUE, "Season ratings are unsupported"))
+            report.issues.add(ImportIssue(report.total, row["title"], tmdbId, ImportReason.INVALID_VALUE, "Season ratings are unsupported"))
             return
         }
 
@@ -343,7 +344,7 @@ class MoviebaseImportService : Service() {
             db.setTransactionSuccessful()
         } catch (e: Exception) {
             report.failed++
-            report.issues.add(ImportIssue(report.total + 1, row["title"], tmdbId, ImportReason.DB_ERROR, e.message))
+            report.issues.add(ImportIssue(report.total, row["title"], tmdbId, ImportReason.DB_ERROR, e.message))
         } finally {
             db.endTransaction()
         }
@@ -377,7 +378,7 @@ class MoviebaseImportService : Service() {
                 fetchTmdbDataIfNeeded(tmdbId, isMovie)
             } catch (e: Exception) {
                 report.failed++
-                report.issues.add(ImportIssue(report.total + 1, row["title"], tmdbId, ImportReason.DB_ERROR, e.message))
+                report.issues.add(ImportIssue(report.total, row["title"], tmdbId, ImportReason.DB_ERROR, e.message))
             } finally {
                 db.endTransaction()
             }

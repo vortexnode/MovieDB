@@ -133,7 +133,7 @@
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/provider_paths" />
         </provider>
         <activity android:name=".activity.MoviebaseImportActivity" android:exported="false" />
-        <service android:name=".service.MoviebaseImportService" android:exported="false" />
+        <service android:name=".service.MoviebaseImportService" android:exported="false" android:foregroundServiceType="dataSync" />
     </application>
     <queries>
         <package android:name="com.netflix.mediaclient" />
