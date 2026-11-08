@@ -289,5 +289,74 @@
                 <include layout="@layout/show_skeleton" />
             </LinearLayout>
         </com.facebook.shimmer.ShimmerFrameLayout>
+
+        <RelativeLayout
+            android:id="@+id/forYouLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_below="@id/upcomingTVRecyclerView"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/forYouTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_centerVertical="true"
+                android:layout_alignParentStart="true"
+                android:text="@string/title_recommendations" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/forYouMore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@id/forYouTitle"
+                app:icon="@drawable/ic_arrow_next"
+                android:layout_centerVertical="true"
+                android:contentDescription="@string/more"
+                style="@style/Widget.Material3.Button.IconButton" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/forYouTypeChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="16dp"
+                android:layout_centerVertical="true"
+                android:text="@string/recommendations_tab_movies"
+                style="@style/Widget.Material3.Chip.Filter" />
+        </RelativeLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/forYouRecyclerView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/forYouLayout"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="15dp"
+            android:clipToPadding="false"
+            android:minHeight="230dp"
+            android:scrollbars="none"
+            android:visibility="gone" />
+
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/shimmerFrameLayoutForYou"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:minHeight="230dp"
+            android:layout_below="@id/forYouLayout"
+            app:shimmer_duration="700">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center">
+
+                <include layout="@layout/show_skeleton" />
+            </LinearLayout>
+        </com.facebook.shimmer.ShimmerFrameLayout>
     </RelativeLayout>
 </androidx.core.widget.NestedScrollView>

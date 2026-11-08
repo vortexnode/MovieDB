@@ -45,8 +45,11 @@ import com.wirelessalien.android.moviedb.activity.BaseActivity
 import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.activity.PersonActivity
 import com.wirelessalien.android.moviedb.activity.ShowMoreActivity
+import com.wirelessalien.android.moviedb.activity.RecommendationsActivity
+import com.wirelessalien.android.moviedb.adapter.HomeRecommendationAdapter
 import com.wirelessalien.android.moviedb.adapter.NowPlayingMovieAdapter
 import com.wirelessalien.android.moviedb.adapter.TrendingPagerAdapter
+import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
 import com.wirelessalien.android.moviedb.databinding.FragmentHomeBinding
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
@@ -81,6 +84,7 @@ class HomeFragment : BaseFragment() {
     private lateinit var menuProvider: MenuProvider
     private var centeredView: View? = null
     private val snapHelper = CarouselSnapHelper()
+    private var isForYouMovie = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -91,6 +95,7 @@ class HomeFragment : BaseFragment() {
             "api_read_access_token"
         )
         preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        isForYouMovie = preferences.getBoolean("for_you_is_movie", true)
         createShowList()
     }
 
@@ -102,6 +107,7 @@ class HomeFragment : BaseFragment() {
                 fetchTrendingList()
                 fetchUpcomingMovies()
                 fetchUpcomingTVShows()
+                fetchForYouRecommendations()
             }
         }
     }
@@ -144,6 +150,24 @@ class HomeFragment : BaseFragment() {
             val intent = Intent(requireContext(), ShowMoreActivity::class.java)
             intent.putExtra(ShowMoreActivity.EXTRA_LIST_TYPE, "on_the_air")
             startActivity(intent)
+        }
+
+        binding.forYouTitle.setOnClickListener {
+            startActivity(Intent(requireContext(), RecommendationsActivity::class.java))
+        }
+
+        binding.forYouMore.setOnClickListener {
+            startActivity(Intent(requireContext(), RecommendationsActivity::class.java))
+        }
+
+        updateForYouChipText()
+        binding.forYouTypeChip.setOnClickListener {
+            isForYouMovie = !isForYouMovie
+            preferences.edit().putBoolean("for_you_is_movie", isForYouMovie).apply()
+            updateForYouChipText()
+            lifecycleScope.launch {
+                fetchForYouRecommendations()
+            }
         }
 
         binding.searchbar.inflateMenu(R.menu.menu_person)
@@ -258,6 +282,52 @@ class HomeFragment : BaseFragment() {
     private fun showUpcomingMovieList() {
         val layoutManager = LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
         setupRecyclerView(binding.upcomingMovieRecyclerView, layoutManager, mUpcomingMovieAdapter)
+    }
+
+    private fun updateForYouChipText() {
+        if (isForYouMovie) {
+            binding.forYouTypeChip.text = getString(R.string.recommendations_tab_movies)
+        } else {
+            binding.forYouTypeChip.text = getString(R.string.recommendations_tab_series)
+        }
+    }
+
+    private suspend fun fetchForYouRecommendations() {
+        withContext(Dispatchers.Main) {
+            binding.forYouLayout.visibility = View.VISIBLE
+            binding.forYouRecyclerView.visibility = View.GONE
+            binding.shimmerFrameLayoutForYou.visibility = View.VISIBLE
+            binding.shimmerFrameLayoutForYou.startShimmer()
+        }
+
+        var results: List<com.wirelessalien.android.moviedb.recommendations.RecommendationResult>? = null
+        try {
+            results = withContext(Dispatchers.IO) {
+                com.wirelessalien.android.moviedb.recommendations.RecommendationEngine(
+                    requireContext(),
+                    MovieDatabaseHelper(requireContext())
+                ).getRecommendations(isForYouMovie)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        withContext(Dispatchers.Main) {
+            if (isAdded) {
+                if (results.isNullOrEmpty()) {
+                    binding.forYouLayout.visibility = View.GONE
+                    binding.forYouRecyclerView.visibility = View.GONE
+                } else {
+                    binding.forYouLayout.visibility = View.VISIBLE
+                    binding.forYouRecyclerView.visibility = View.VISIBLE
+                    val adapter = HomeRecommendationAdapter(results)
+                    val layoutManager = LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
+                    setupRecyclerView(binding.forYouRecyclerView, layoutManager, adapter)
+                }
+                binding.shimmerFrameLayoutForYou.visibility = View.GONE
+                binding.shimmerFrameLayoutForYou.stopShimmer()
+            }
+        }
     }
 
     private suspend fun fetchUpcomingTVShows() {
