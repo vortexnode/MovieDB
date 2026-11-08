@@ -187,6 +187,8 @@ class MoviebaseImportService : Service() {
         val title = row["title"] ?: ""
         val lastWatched = convertDate(row["last_watched_at"])
         val plays = row["plays"]?.toIntOrNull() ?: 1
+        var fetchMovie = false
+        var fetchShow = false
 
         val db = movieDbHelper.writableDatabase
         db.beginTransaction()
@@ -212,7 +214,7 @@ class MoviebaseImportService : Service() {
                     }
                     db.insert(MovieDatabaseHelper.TABLE_MOVIES, null, cv)
                     report.inserted++
-                    fetchTmdbDataIfNeeded(tmdbId, type == "movie")
+                    fetchMovie = true
                 } else {
                     // Update existing
                     val cv = android.content.ContentValues().apply {
@@ -245,7 +247,7 @@ class MoviebaseImportService : Service() {
                         }
                         db.insert(MovieDatabaseHelper.TABLE_MOVIES, null, cv)
 
-                    fetchTmdbDataIfNeeded(tmdbId, false)
+                        fetchShow = true
                     } else {
                         // Ensure show is at least watching if it wasn't watched
                         // (Avoiding complex query here, rely on user to fix up if needed, or set to WATCHING)
@@ -278,6 +280,9 @@ class MoviebaseImportService : Service() {
         } finally {
             db.endTransaction()
         }
+
+        if (fetchMovie) fetchTmdbDataIfNeeded(tmdbId, true)
+        if (fetchShow) fetchTmdbDataIfNeeded(tmdbId, false)
     }
 
     private suspend fun handleRatingsRow(row: Map<String, String>, tmdbId: Long, report: ImportReport) {
@@ -290,6 +295,8 @@ class MoviebaseImportService : Service() {
             report.issues.add(ImportIssue(report.total, row["title"], tmdbId, ImportReason.INVALID_VALUE, "Season ratings are unsupported"))
             return
         }
+
+        var fetchMovie = false
 
         val db = movieDbHelper.writableDatabase
         db.beginTransaction()
@@ -319,7 +326,7 @@ class MoviebaseImportService : Service() {
                     }
                     db.insert(MovieDatabaseHelper.TABLE_MOVIES, null, cv)
                     report.inserted++
-                    fetchTmdbDataIfNeeded(tmdbId, type == "movie")
+                    fetchMovie = true
                 }
             } else if (type == "episode") {
                 val season = row["season_number"]?.toIntOrNull()
@@ -348,11 +355,14 @@ class MoviebaseImportService : Service() {
         } finally {
             db.endTransaction()
         }
+
+        if (fetchMovie) fetchTmdbDataIfNeeded(tmdbId, type == "movie")
     }
 
     private suspend fun handleWatchlistRow(row: Map<String, String>, tmdbId: Long, report: ImportReport) {
         val type = row["type"]
         val isMovie = type == "movie"
+        var fetchTmdb = false
 
         val db = movieDbHelper.writableDatabase
         val existingId = movieDbHelper.getMovieRowId(tmdbId, isMovie)
@@ -375,10 +385,11 @@ class MoviebaseImportService : Service() {
                 db.insert(MovieDatabaseHelper.TABLE_MOVIES, null, cv)
                 db.setTransactionSuccessful()
                 report.inserted++
-                fetchTmdbDataIfNeeded(tmdbId, isMovie)
+                fetchTmdb = true
             } catch (e: Exception) {
                 report.failed++
                 report.issues.add(ImportIssue(report.total, row["title"], tmdbId, ImportReason.DB_ERROR, e.message))
+                fetchTmdb = false
             } finally {
                 db.endTransaction()
             }
@@ -386,6 +397,8 @@ class MoviebaseImportService : Service() {
              // Never downgrade already watched/watching items
              report.skipped++
         }
+
+        if (fetchTmdb) fetchTmdbDataIfNeeded(tmdbId, isMovie)
     }
 
 
