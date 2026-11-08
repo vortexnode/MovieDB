@@ -141,44 +141,44 @@ class TraktImportService : Service() {
             if (doWatched) {
                 updateNotification("Fetching Watched Movies", currentProgress, totalStepsEstimate)
                 fetchPaginatedData("/sync/watched/movies", report) { item, rep, row ->
-                    traktImporter.processWatchedMovie(item, rep, row)
+                    traktImporter.processWatchedMovie(item, rep, row, "Trakt API: Watched Movies")
                 }
 
                 updateNotification("Fetching Watched Shows", currentProgress, totalStepsEstimate)
                 fetchPaginatedData("/sync/watched/shows", report) { item, rep, row ->
-                    traktImporter.processWatchedShow(item, rep, row)
+                    traktImporter.processWatchedShow(item, rep, row, "Trakt API: Watched Shows")
                 }
             }
 
             if (doRatings) {
                 updateNotification("Fetching Ratings", currentProgress, totalStepsEstimate)
                 fetchPaginatedData("/sync/ratings", report) { item, rep, row ->
-                    traktImporter.processRating(item, rep, row)
+                    traktImporter.processRating(item, rep, row, "Trakt API: Ratings")
                 }
             }
 
             if (doWatchlist) {
                 updateNotification("Fetching Watchlist", currentProgress, totalStepsEstimate)
                 fetchPaginatedData("/sync/watchlist", report) { item, rep, row ->
-                    traktImporter.processWatchlist(item, rep, row)
+                    traktImporter.processWatchlist(item, rep, row, "Trakt API: Watchlist")
                 }
             }
 
             if (doCollection) {
                 updateNotification("Fetching Collection Movies", currentProgress, totalStepsEstimate)
                 fetchPaginatedData("/sync/collection/movies", report) { item, rep, row ->
-                    traktImporter.processTagItem(item, "Collection", rep, row)
+                    traktImporter.processTagItem(item, "Collection", rep, row, "Trakt API: Collection")
                 }
                 updateNotification("Fetching Collection Shows", currentProgress, totalStepsEstimate)
                 fetchPaginatedData("/sync/collection/shows", report) { item, rep, row ->
-                    traktImporter.processTagItem(item, "Collection", rep, row)
+                    traktImporter.processTagItem(item, "Collection", rep, row, "Trakt API: Collection")
                 }
             }
 
             if (doFavorites) {
                 updateNotification("Fetching Favorites", currentProgress, totalStepsEstimate)
                 fetchPaginatedData("/sync/favorites", report) { item, rep, row ->
-                    traktImporter.processTagItem(item, "Favorites", rep, row)
+                    traktImporter.processTagItem(item, "Favorites", rep, row, "Trakt API: Favorites")
                 }
             }
 
@@ -191,27 +191,16 @@ class TraktImportService : Service() {
             fetchMissingTmdbMetadata(report)
 
             // Save report
-            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            val showcaseDir = File(downloadsDir, "ShowCase")
-            if (!showcaseDir.exists()) showcaseDir.mkdirs()
+            val (reportJsonPath, reportCsvPath) = com.wirelessalien.android.moviedb.helper.ReportExportHelper.saveReport(applicationContext, report, "trakt_import_report")
 
-            val jsonFile = File(showcaseDir, "trakt_import_report_$timestamp.json")
-            FileWriter(jsonFile).use { writer ->
-                writer.write(Gson().toJson(report))
-            }
-
-            updateNotification("Import Complete", 100, 100, true, false, jsonFile.absolutePath)
+            updateNotification("Import Complete", 100, 100, true, false, reportJsonPath)
         } catch (e: Exception) {
             Log.e(TAG, "Error during Trakt Import", e)
             updateNotification("Import Failed: ${e.message}", 0, 0, true, true)
         }
 
-        serviceScope.launch {
-            delay(5000)
-            stopForeground(STOP_FOREGROUND_REMOVE)
-            stopSelf()
-        }
+        stopForeground(STOP_FOREGROUND_DETACH)
+        stopSelf()
     }
 
     private suspend fun fetchCustomLists(report: ImportReport) {
@@ -236,7 +225,7 @@ class TraktImportService : Service() {
                     if (listId.isNotBlank() && listName.isNotBlank()) {
                         updateNotification("Fetching List: $listName", 0, 100)
                         fetchPaginatedData("/users/me/lists/$listId/items", report) { item, rep, row ->
-                            traktImporter.processTagItem(item, listName, rep, row)
+                            traktImporter.processTagItem(item, listName, rep, row, "Trakt API: Custom List $listName")
                         }
                     }
                 }

@@ -98,6 +98,14 @@
                 android:text="@string/trakt_import_custom_lists"
                 android:checked="true"/>
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonLastReport"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/last_import_report"
+                android:layout_marginBottom="8dp"
+                style="@style/Widget.Material3.Button.OutlinedButton" />
+
             <Button
                 android:id="@+id/btn_start_import"
                 android:layout_width="match_parent"

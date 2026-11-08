@@ -25,6 +25,9 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.Toast
+import android.os.Environment
+import java.io.File
+import com.wirelessalien.android.moviedb.activity.ImportReportActivity
 import androidx.preference.PreferenceManager
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.fragment.LoginFragmentTkt
@@ -52,6 +55,25 @@ class TraktImportActivity : BaseActivity() {
                 bottomSheetFragment.show(supportFragmentManager, bottomSheetFragment.tag)
             } else {
                 startImportService()
+            }
+        }
+
+        val btnLastReport = findViewById<Button>(R.id.buttonLastReport)
+        btnLastReport.setOnClickListener {
+            val dir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: filesDir
+            val jsonFiles = dir.listFiles { file -> file.name.startsWith("trakt_import_report_") && file.name.endsWith(".json") }
+            val lastJson = jsonFiles?.maxByOrNull { it.lastModified() }
+            if (lastJson != null) {
+                val csvFile = File(dir, lastJson.name.removeSuffix(".json") + ".csv")
+                val intent = Intent(this, ImportReportActivity::class.java).apply {
+                    putExtra("report_json_path", lastJson.absolutePath)
+                    if (csvFile.exists()) {
+                        putExtra("report_csv_path", csvFile.absolutePath)
+                    }
+                }
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, getString(R.string.no_report_found), Toast.LENGTH_SHORT).show()
             }
         }
     }
