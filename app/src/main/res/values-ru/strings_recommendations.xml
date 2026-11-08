@@ -5,6 +5,6 @@
     <string name="recommendations_tab_series">Сериалы</string>
     <string name="recommendations_because_you_liked">Потому что вам нравится %1$s</string>
     <string name="recommendations_not_interested">Не интересно</string>
-    <string name="recommendations_add_to_watchlist">Добавить в будущие</string>
+    <string name="recommendations_add_to_watchlist">В планы</string>
     <string name="recommendations_empty">Рекомендации не найдены.</string>
 </resources>
