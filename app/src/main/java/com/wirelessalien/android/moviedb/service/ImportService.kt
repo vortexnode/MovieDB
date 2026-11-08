@@ -43,6 +43,7 @@ import com.wirelessalien.android.moviedb.helper.CsvParserUtil
 import com.wirelessalien.android.moviedb.helper.ImportIssue
 import com.wirelessalien.android.moviedb.helper.ImportReason
 import com.wirelessalien.android.moviedb.helper.ImportReport
+import com.wirelessalien.android.moviedb.helper.ReportExportHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.RateLimiter
 import java.io.File
@@ -428,26 +429,9 @@ class ImportService : Service() {
         var reportJsonPath: String? = null
         var reportCsvPath: String? = null
         try {
-            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val downloadsDir = applicationContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-                ?: Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                ?: applicationContext.filesDir
-
-            val jsonFile = File(downloadsDir, "import_report_$timestamp.json")
-            val csvFile = File(downloadsDir, "import_report_$timestamp.csv")
-
-            FileWriter(jsonFile).use { writer ->
-                writer.write(Gson().toJson(report))
-            }
-            reportJsonPath = jsonFile.absolutePath
-
-            FileWriter(csvFile).use { writer ->
-                writer.append("row,title,tmdb_id,status,reason,detailMessage\n")
-                report.issues.forEach { issue ->
-                    writer.append("${issue.rowNumber},\"${issue.title?.replace("\"", "\"\"") ?: ""}\",${issue.tmdbId ?: ""},FAILED/SKIPPED,${issue.reason.name},\"${issue.detailMessage?.replace("\"", "\"\"") ?: ""}\"\n")
-                }
-            }
-            reportCsvPath = csvFile.absolutePath
+            val paths = ReportExportHelper.saveReport(applicationContext, report, "csv")
+            reportJsonPath = paths.first
+            reportCsvPath = paths.second
         } catch (e: Exception) {
             Log.e(TAG, "Error saving import reports", e)
         }
@@ -462,7 +446,7 @@ class ImportService : Service() {
         // Delay stopping foreground and service to allow user to see final notification
         serviceScope.launch {
             delay(5000)
-            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopForeground(STOP_FOREGROUND_DETACH)
             stopSelf()
         }
     }

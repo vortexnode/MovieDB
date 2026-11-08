@@ -128,6 +128,10 @@
             android:summary="@string/select_default_sync_provider"
             app:iconSpaceReserved="false"
             app:title="@string/sync_provider2" />
+        <Preference
+            android:key="tmdb_sync_key"
+            android:title="@string/tmdb_sync_preference_title"
+            app:iconSpaceReserved="false"/>
 
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="false"
@@ -401,6 +405,47 @@
             android:title="@string/privacy_policy"
             app:iconSpaceReserved="false"
             android:key="privacy_key"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/reminders_settings_title"
+        app:iconSpaceReserved="false">
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:key="key_reminders_movie_premieres"
+            android:title="@string/reminders_movie_premieres_title"
+            android:summary="@string/reminders_movie_premieres_summary"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false"/>
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:key="key_reminders_new_episodes"
+            android:title="@string/reminders_new_episodes_title"
+            android:summary="@string/reminders_new_episodes_summary"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false"/>
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:key="key_reminders_new_seasons"
+            android:title="@string/reminders_new_seasons_title"
+            android:summary="@string/reminders_new_seasons_summary"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false"/>
+
+        <Preference
+            android:key="key_reminders_time_of_day"
+            android:title="@string/reminders_time_of_day_title"
+            android:summary="09:00"
+            app:iconSpaceReserved="false"/>
+
+        <ListPreference
+            android:key="key_reminders_days_before"
+            android:title="@string/reminders_days_before_title"
+            android:entries="@array/reminders_days_before_entries"
+            android:entryValues="@array/reminders_days_before_values"
+            android:defaultValue="0"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true"/>
     </PreferenceCategory>
 
     <PreferenceCategory

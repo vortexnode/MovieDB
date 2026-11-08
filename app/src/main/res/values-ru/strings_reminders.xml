@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reminders_settings_title">Напоминания</string>
+    <string name="reminders_movie_premieres_title">Премьеры фильмов</string>
+    <string name="reminders_movie_premieres_summary">Уведомлять о выходе фильмов из вашего списка</string>
+    <string name="reminders_new_episodes_title">Новые эпизоды</string>
+    <string name="reminders_new_episodes_summary">Уведомлять о новых эпизодах сериалов, которые вы смотрите или планируете посмотреть</string>
+    <string name="reminders_new_seasons_title">Новые сезоны</string>
+    <string name="reminders_new_seasons_summary">Уведомлять о начале нового сезона сериалов, которые вы смотрите или планируете посмотреть</string>
+    <string name="reminders_time_of_day_title">Время дня</string>
+    <string name="reminders_time_of_day_summary">В какое время отправлять напоминания?</string>
+    <string name="reminders_days_before_title">Напоминать за</string>
+    <string name="reminders_days_before_0">В день выхода</string>
+    <string name="reminders_days_before_1">За 1 день до выхода</string>
+    <string name="reminders_days_before_2">За 2 дня до выхода</string>
+    <string name="reminders_days_before_3">За 3 дня до выхода</string>
+    <string name="reminders_days_before_7">За 1 неделю до выхода</string>
+</resources>

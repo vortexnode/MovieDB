@@ -78,7 +78,7 @@ class MoviebaseImportService : Service() {
                 }
             } else {
                 Log.e(TAG, "File URI missing. Stopping service.")
-                stopForeground(STOP_FOREGROUND_REMOVE)
+                stopForeground(STOP_FOREGROUND_DETACH)
                 stopSelf()
             }
         }
@@ -144,45 +144,47 @@ class MoviebaseImportService : Service() {
         val csvParser = CSVParserBuilder().withSeparator(',').withQuoteChar('"').build()
         val csvReader = CSVReaderHeaderAwareBuilder(reader).withCSVParser(csvParser).build()
 
+        var fileRowNumber = 1 // Track 1-based index (data row)
         while (true) {
             val rowValues = csvReader.readMap() ?: break
             // Remove BOM from keys if present
             val cleanedRowValues = rowValues.mapKeys { it.key.replace("\uFEFF", "") }
 
             try {
-                handleRow(fileName, cleanedRowValues, report)
+                handleRow(fileName, fileRowNumber, cleanedRowValues, report)
                 incrementRow()
             } catch (e: Exception) {
                 Log.e(TAG, "Error handling row in $fileName", e)
                 report.failed++
-                report.issues.add(ImportIssue(report.total, cleanedRowValues["title"], cleanedRowValues["tmdb_id"]?.toLongOrNull(), ImportReason.INVALID_VALUE, e.message))
+                report.issues.add(ImportIssue(fileRowNumber, cleanedRowValues["title"], cleanedRowValues["tmdb_id"]?.toLongOrNull(), ImportReason.INVALID_VALUE, "$fileName - ${e.message}"))
             }
+            fileRowNumber++
         }
         // Don't close csvReader as it will close the underlying InputStream (bad for ZipInputStream)
     }
 
 
-    private suspend fun handleRow(fileName: String, row: Map<String, String>, report: ImportReport) {
+    private suspend fun handleRow(fileName: String, fileRowNumber: Int, row: Map<String, String>, report: ImportReport) {
         val tmdbIdStr = row["tmdb_id"] ?: row["SHOW"]
         val tmdbId = tmdbIdStr?.toLongOrNull()
 
         if (tmdbId == null) {
             report.skipped++
-            report.issues.add(ImportIssue(report.total, row["title"], null, ImportReason.MISSING_TMDB_ID, "No tmdb_id found"))
+            report.issues.add(ImportIssue(fileRowNumber, row["title"], null, ImportReason.MISSING_TMDB_ID, "$fileName - No tmdb_id found"))
             return
         }
 
         when (fileName) {
-            "watched.csv" -> handleWatchedRow(row, tmdbId, report)
-            "ratings.csv" -> handleRatingsRow(row, tmdbId, report)
-            "watchlist.csv" -> handleWatchlistRow(row, tmdbId, report)
-            "favorites.csv", "collection.csv" -> handleTagsRow(fileName, row, tmdbId, report)
-            "lists.csv" -> handleListsRow(row, tmdbId, report)
-            "people.csv" -> handlePeopleRow(row, tmdbId, report)
+            "watched.csv" -> handleWatchedRow(fileName, fileRowNumber, row, tmdbId, report)
+            "ratings.csv" -> handleRatingsRow(fileName, fileRowNumber, row, tmdbId, report)
+            "watchlist.csv" -> handleWatchlistRow(fileName, fileRowNumber, row, tmdbId, report)
+            "favorites.csv", "collection.csv" -> handleTagsRow(fileName, fileRowNumber, row, tmdbId, report)
+            "lists.csv" -> handleListsRow(fileName, fileRowNumber, row, tmdbId, report)
+            "people.csv" -> handlePeopleRow(fileName, fileRowNumber, row, tmdbId, report)
         }
     }
 
-    private suspend fun handleWatchedRow(row: Map<String, String>, tmdbId: Long, report: ImportReport) {
+    private suspend fun handleWatchedRow(fileName: String, fileRowNumber: Int, row: Map<String, String>, tmdbId: Long, report: ImportReport) {
         val type = row["type"]
         val title = row["title"] ?: ""
         val lastWatched = convertDate(row["last_watched_at"])
@@ -274,20 +276,20 @@ class MoviebaseImportService : Service() {
             db.setTransactionSuccessful()
         } catch (e: Exception) {
             report.failed++
-            report.issues.add(ImportIssue(report.total, title, tmdbId, ImportReason.DB_ERROR, e.message))
+            report.issues.add(ImportIssue(fileRowNumber, title, tmdbId, ImportReason.DB_ERROR, "$fileName - ${e.message}"))
         } finally {
             db.endTransaction()
         }
     }
 
-    private suspend fun handleRatingsRow(row: Map<String, String>, tmdbId: Long, report: ImportReport) {
+    private suspend fun handleRatingsRow(fileName: String, fileRowNumber: Int, row: Map<String, String>, tmdbId: Long, report: ImportReport) {
         val type = row["type"]
         val rating10 = row["rating_10"]?.toDoubleOrNull()
         if (rating10 == null) return
 
         if (type == "season") {
             report.skipped++
-            report.issues.add(ImportIssue(report.total, row["title"], tmdbId, ImportReason.INVALID_VALUE, "Season ratings are unsupported"))
+            report.issues.add(ImportIssue(fileRowNumber, row["title"], tmdbId, ImportReason.INVALID_VALUE, "$fileName - Season ratings are unsupported"))
             return
         }
 
@@ -344,13 +346,13 @@ class MoviebaseImportService : Service() {
             db.setTransactionSuccessful()
         } catch (e: Exception) {
             report.failed++
-            report.issues.add(ImportIssue(report.total, row["title"], tmdbId, ImportReason.DB_ERROR, e.message))
+            report.issues.add(ImportIssue(fileRowNumber, row["title"], tmdbId, ImportReason.DB_ERROR, "$fileName - ${e.message}"))
         } finally {
             db.endTransaction()
         }
     }
 
-    private suspend fun handleWatchlistRow(row: Map<String, String>, tmdbId: Long, report: ImportReport) {
+    private suspend fun handleWatchlistRow(fileName: String, fileRowNumber: Int, row: Map<String, String>, tmdbId: Long, report: ImportReport) {
         val type = row["type"]
         val isMovie = type == "movie"
 
@@ -378,7 +380,7 @@ class MoviebaseImportService : Service() {
                 fetchTmdbDataIfNeeded(tmdbId, isMovie)
             } catch (e: Exception) {
                 report.failed++
-                report.issues.add(ImportIssue(report.total, row["title"], tmdbId, ImportReason.DB_ERROR, e.message))
+                report.issues.add(ImportIssue(fileRowNumber, row["title"], tmdbId, ImportReason.DB_ERROR, "$fileName - ${e.message}"))
             } finally {
                 db.endTransaction()
             }
@@ -389,7 +391,7 @@ class MoviebaseImportService : Service() {
     }
 
 
-    private suspend fun handleTagsRow(fileName: String, row: Map<String, String>, tmdbId: Long, report: ImportReport) {
+    private suspend fun handleTagsRow(fileName: String, fileRowNumber: Int, row: Map<String, String>, tmdbId: Long, report: ImportReport) {
         val type = row["type"]
         val isMovie = type == "movie"
         val tagName = if (fileName == "favorites.csv") "Favorites" else "Collection"
@@ -401,7 +403,7 @@ class MoviebaseImportService : Service() {
         }
     }
 
-    private suspend fun handleListsRow(row: Map<String, String>, tmdbId: Long, report: ImportReport) {
+    private suspend fun handleListsRow(fileName: String, fileRowNumber: Int, row: Map<String, String>, tmdbId: Long, report: ImportReport) {
         val listName = row["list_name"]
         val type = row["type"]
         if (listName.isNullOrBlank()) return
@@ -413,7 +415,7 @@ class MoviebaseImportService : Service() {
         report.updated++
     }
 
-    private suspend fun handlePeopleRow(row: Map<String, String>, tmdbId: Long, report: ImportReport) {
+    private suspend fun handlePeopleRow(fileName: String, fileRowNumber: Int, row: Map<String, String>, tmdbId: Long, report: ImportReport) {
         val name = row["name"]
         if (name.isNullOrBlank()) return
 
@@ -532,26 +534,9 @@ class MoviebaseImportService : Service() {
         var reportJsonPath: String? = null
         var reportCsvPath: String? = null
         try {
-            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val downloadsDir = applicationContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-                ?: Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                ?: applicationContext.filesDir
-
-            val jsonFile = File(downloadsDir, "moviebase_import_report_$timestamp.json")
-            val csvFile = File(downloadsDir, "moviebase_import_report_$timestamp.csv")
-
-            FileWriter(jsonFile).use { writer ->
-                writer.write(Gson().toJson(report))
-            }
-            reportJsonPath = jsonFile.absolutePath
-
-            FileWriter(csvFile).use { writer ->
-                writer.append("row,title,tmdb_id,status,reason,detailMessage\n")
-                report.issues.forEach { issue ->
-                    writer.append("${issue.rowNumber},\"${issue.title?.replace("\"", "\"\"") ?: ""}\",${issue.tmdbId ?: ""},FAILED/SKIPPED,${issue.reason.name},\"${issue.detailMessage?.replace("\"", "\"\"") ?: ""}\"\n")
-                }
-            }
-            reportCsvPath = csvFile.absolutePath
+            val paths = ReportExportHelper.saveReport(applicationContext, report, "moviebase")
+            reportJsonPath = paths.first
+            reportCsvPath = paths.second
         } catch (e: Exception) {
             Log.e(TAG, "Error saving import reports", e)
         }
@@ -560,7 +545,7 @@ class MoviebaseImportService : Service() {
 
         serviceScope.launch {
             delay(5000)
-            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopForeground(STOP_FOREGROUND_DETACH)
             stopSelf()
         }
     }

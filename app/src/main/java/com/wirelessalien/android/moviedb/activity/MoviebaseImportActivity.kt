@@ -10,6 +10,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.preference.PreferenceManager
 import androidx.documentfile.provider.DocumentFile
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.ActivityMoviebaseImportBinding
@@ -62,6 +63,21 @@ class MoviebaseImportActivity : AppCompatActivity() {
 
         binding.buttonStartImport.setOnClickListener {
             startImport()
+        }
+
+        binding.buttonLastImportReport.setOnClickListener {
+            val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+            val jsonPath = prefs.getString("moviebase_last_report_json_path", null)
+            val csvPath = prefs.getString("moviebase_last_report_csv_path", null)
+            if (jsonPath != null) {
+                val intent = Intent(this, ImportReportActivity::class.java).apply {
+                    putExtra("report_json_path", jsonPath as String)
+                    if (csvPath != null) putExtra("report_csv_path", csvPath as String)
+                }
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, getString(R.string.no_report_found), Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

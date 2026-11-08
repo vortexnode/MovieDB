@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tmdb_sync_title">Синхронизация с TMDB</string>
+    <string name="tmdb_sync_ratings">Синхронизация оценок</string>
+    <string name="tmdb_sync_favorites">Синхронизация избранного</string>
+    <string name="tmdb_sync_watchlist">Синхронизация списка к просмотру</string>
+    <string name="tmdb_sync_lists">Синхронизация пользовательских списков (из тегов)</string>
+    <string name="tmdb_sync_local_lists">Синхронизация локальных списков</string>
+    <string name="tmdb_sync_dry_run">Тестовый запуск (Только расчет количества)</string>
+    <string name="tmdb_sync_start">Начать синхронизацию</string>
+    <string name="tmdb_sync_list_selection">Выберите теги для синхронизации как списки:</string>
+    <string name="tmdb_sync_not_logged_in">Вы должны войти в TMDB.</string>
+    <string name="tmdb_sync_started">Синхронизация с TMDB началась.</string>
+    <string name="tmdb_sync_completed">Синхронизация с TMDB завершена.</string>
+    <string name="tmdb_sync_failed">Синхронизация с TMDB не удалась.</string>
+    <string name="tmdb_sync_progress_title">Синхронизация с TMDB</string>
+    <string name="tmdb_sync_dry_run_results">Результаты тестового запуска:\nОценки: %1$d\nИзбранное: %2$d\nСписок к просмотру: %3$d\nСписки: %4$d\nЭлементы в списках: %5$d</string>
+    <string name="tmdb_sync_select_tags_error">Пожалуйста, выберите хотя бы один тег для синхронизации как список.</string>
+</resources>

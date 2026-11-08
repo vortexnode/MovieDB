@@ -1,31 +1,10 @@
-<!--
-  ~     This file is part of "ShowCase" formerly Movie DB. <https://github.com/WirelessAlien/MovieDB>
-  ~     forked from <https://notabug.org/nvb/MovieDB>
-  ~
-  ~     Copyright (C) 2024  WirelessAlien <https://github.com/WirelessAlien>
-  ~
-  ~     ShowCase is free software: you can redistribute it and/or modify
-  ~     it under the terms of the GNU General Public License as published by
-  ~     the Free Software Foundation, either version 3 of the License, or
-  ~     (at your option) any later version.
-  ~
-  ~     ShowCase is distributed in the hope that it will be useful,
-  ~     but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~     GNU General Public License for more details.
-  ~
-  ~     You should have received a copy of the GNU General Public License
-  ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
-  -->
-
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
-    android:viewportWidth="960"
-    android:viewportHeight="960"
-    android:tint="?attr/colorControlNormal">
-
-<path
-      android:fillColor="#FF000000"
-      android:pathData="M320,560q-17,0 -28.5,-11.5T280,520q0,-17 11.5,-28.5T320,480q17,0 28.5,11.5T360,520q0,17 -11.5,28.5T320,560ZM480,560q-17,0 -28.5,-11.5T440,520q0,-17 11.5,-28.5T480,480q17,0 28.5,11.5T520,520q0,17 -11.5,28.5T480,560ZM640,560q-17,0 -28.5,-11.5T600,520q0,-17 11.5,-28.5T640,480q17,0 28.5,11.5T680,520q0,17 -11.5,28.5T640,560ZM200,880q-33,0 -56.5,-23.5T120,800v-560q0,-33 23.5,-56.5T200,160h40v-40q0,-17 11.5,-28.5T280,80q17,0 28.5,11.5T320,120v40h320v-40q0,-17 11.5,-28.5T680,80q17,0 28.5,11.5T720,120v40h40q33,0 56.5,23.5T840,240v560q0,33 -23.5,56.5T760,880L200,880ZM200,800h560v-400L200,400v400ZM200,320h560v-80L200,240v80ZM200,320v-80,80Z"/>
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <path
+      android:fillColor="?attr/colorControlNormal"
+      android:pathData="M19,4h-1V2h-2v2H8V2H6v2H5C3.89,4 3.01,4.9 3.01,6L3,20c0,1.1 0.89,2 2,2h14c1.1,0 2,-0.9 2,-2V6C21,4.9 20.1,4 19,4zM19,20H5V10h14V20zM9,14H7v-2h2V14zM13,14h-2v-2h2V14zM17,14h-2v-2h2V14zM9,18H7v-2h2V18zM13,18h-2v-2h2V18zM17,18h-2v-2h2V18z"/>
 </vector>

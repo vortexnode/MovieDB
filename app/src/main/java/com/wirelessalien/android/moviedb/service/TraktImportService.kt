@@ -41,6 +41,7 @@ import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.ImportIssue
 import com.wirelessalien.android.moviedb.helper.ImportReason
 import com.wirelessalien.android.moviedb.helper.ImportReport
+import com.wirelessalien.android.moviedb.helper.ReportExportHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.RateLimiter
 import com.wirelessalien.android.moviedb.helper.TraktImporter
@@ -191,17 +192,17 @@ class TraktImportService : Service() {
             fetchMissingTmdbMetadata(report)
 
             // Save report
-            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            val showcaseDir = File(downloadsDir, "ShowCase")
-            if (!showcaseDir.exists()) showcaseDir.mkdirs()
-
-            val jsonFile = File(showcaseDir, "trakt_import_report_$timestamp.json")
-            FileWriter(jsonFile).use { writer ->
-                writer.write(Gson().toJson(report))
+            var jsonPath: String? = null
+            var csvPath: String? = null
+            try {
+                val paths = ReportExportHelper.saveReport(applicationContext, report, "trakt")
+                jsonPath = paths.first
+                csvPath = paths.second
+            } catch (e: Exception) {
+                Log.e(TAG, "Error saving trakt report", e)
             }
 
-            updateNotification("Import Complete", 100, 100, true, false, jsonFile.absolutePath)
+            updateNotification("Import Complete", 100, 100, true, false, jsonPath, csvPath)
         } catch (e: Exception) {
             Log.e(TAG, "Error during Trakt Import", e)
             updateNotification("Import Failed: ${e.message}", 0, 0, true, true)
@@ -209,7 +210,7 @@ class TraktImportService : Service() {
 
         serviceScope.launch {
             delay(5000)
-            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopForeground(STOP_FOREGROUND_DETACH)
             stopSelf()
         }
     }
@@ -503,10 +504,11 @@ class TraktImportService : Service() {
         }
     }
 
-    private fun createNotification(contentText: String, progress: Int, maxProgress: Int, isFinished: Boolean = false, isError: Boolean = false, reportPath: String? = null): Notification {
+    private fun createNotification(contentText: String, progress: Int, maxProgress: Int, isFinished: Boolean = false, isError: Boolean = false, reportPath: String? = null, reportCsvPath: String? = null): Notification {
         val intent = if (isFinished && reportPath != null) {
             Intent(this, ImportReportActivity::class.java).apply {
-                putExtra("report_json_path", reportPath)
+                putExtra("report_json_path", reportPath as String)
+                if (reportCsvPath != null) putExtra("report_csv_path", reportCsvPath as String)
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
         } else {
@@ -539,8 +541,12 @@ class TraktImportService : Service() {
         return builder.build()
     }
 
-    private fun updateNotification(contentText: String, progress: Int, maxProgress: Int, isFinished: Boolean = false, isError: Boolean = false, reportPath: String? = null) {
-        notificationManager.notify(NOTIFICATION_ID, createNotification(contentText, progress, maxProgress, isFinished, isError, reportPath))
+    private fun updateNotification(
+        contentText: String, progress: Int, maxProgress: Int,
+        isFinished: Boolean = false, isError: Boolean = false,
+        reportPath: String? = null, reportCsvPath: String? = null
+    ) {
+        notificationManager.notify(NOTIFICATION_ID, createNotification(contentText, progress, maxProgress, isFinished, isError, reportPath, reportCsvPath))
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

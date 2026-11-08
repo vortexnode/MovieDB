@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tmdb_sync_title">TMDB Sync</string>
+    <string name="tmdb_sync_ratings">Sync Ratings</string>
+    <string name="tmdb_sync_favorites">Sync Favorites</string>
+    <string name="tmdb_sync_watchlist">Sync Watchlist</string>
+    <string name="tmdb_sync_lists">Sync Custom Lists (from tags)</string>
+    <string name="tmdb_sync_local_lists">Sync Local Lists</string>
+    <string name="tmdb_sync_dry_run">Dry Run (Calculate counts only)</string>
+    <string name="tmdb_sync_start">Start Sync</string>
+    <string name="tmdb_sync_list_selection">Select tags to sync as lists:</string>
+    <string name="tmdb_sync_not_logged_in">You must be logged in to TMDB.</string>
+    <string name="tmdb_sync_started">TMDB Sync started.</string>
+    <string name="tmdb_sync_completed">TMDB Sync completed.</string>
+    <string name="tmdb_sync_failed">TMDB Sync failed.</string>
+    <string name="tmdb_sync_progress_title">Syncing with TMDB</string>
+    <string name="tmdb_sync_dry_run_results">Dry Run Results:\nRatings: %1$d\nFavorites: %2$d\nWatchlist: %3$d\nLists: %4$d\nItems in lists: %5$d</string>
+    <string name="tmdb_sync_select_tags_error">Please select at least one tag to sync as a list.</string>
+</resources>

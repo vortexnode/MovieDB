@@ -197,6 +197,47 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
 
         }
 
+        findPreference<Preference>("key_reminders_time_of_day")?.setOnPreferenceClickListener {
+            val timePicker = com.google.android.material.timepicker.MaterialTimePicker.Builder()
+                .setTimeFormat(com.google.android.material.timepicker.TimeFormat.CLOCK_24H)
+                .setTitleText(R.string.reminders_time_of_day_title)
+                .setHour(preferences.getInt("key_reminders_hour", 9))
+                .setMinute(preferences.getInt("key_reminders_minute", 0))
+                .build()
+
+            timePicker.addOnPositiveButtonClickListener {
+                preferences.edit {
+                    putInt("key_reminders_hour", timePicker.hour)
+                    putInt("key_reminders_minute", timePicker.minute)
+                }
+                findPreference<Preference>("key_reminders_time_of_day")?.summary = String.format(java.util.Locale.getDefault(), "%02d:%02d", timePicker.hour, timePicker.minute)
+                com.wirelessalien.android.moviedb.work.ReleaseReminderWorker.schedulePeriodicWork(requireContext())
+            }
+            timePicker.show(childFragmentManager, "time_picker")
+            true
+        }
+        val hour = preferences.getInt("key_reminders_hour", 9)
+        val minute = preferences.getInt("key_reminders_minute", 0)
+        findPreference<Preference>("key_reminders_time_of_day")?.summary = String.format(java.util.Locale.getDefault(), "%02d:%02d", hour, minute)
+
+        findPreference<ListPreference>("key_reminders_days_before")?.setOnPreferenceChangeListener { _, _ ->
+            com.wirelessalien.android.moviedb.work.ReleaseReminderWorker.schedulePeriodicWork(requireContext())
+            true
+        }
+
+        findPreference<SwitchPreferenceCompat>("key_reminders_movie_premieres")?.setOnPreferenceChangeListener { _, _ ->
+            com.wirelessalien.android.moviedb.work.ReleaseReminderWorker.schedulePeriodicWork(requireContext())
+            true
+        }
+        findPreference<SwitchPreferenceCompat>("key_reminders_new_episodes")?.setOnPreferenceChangeListener { _, _ ->
+            com.wirelessalien.android.moviedb.work.ReleaseReminderWorker.schedulePeriodicWork(requireContext())
+            true
+        }
+        findPreference<SwitchPreferenceCompat>("key_reminders_new_seasons")?.setOnPreferenceChangeListener { _, _ ->
+            com.wirelessalien.android.moviedb.work.ReleaseReminderWorker.schedulePeriodicWork(requireContext())
+            true
+        }
+
         findPreference<Preference>("key_custom_ott_preference")?.setOnPreferenceClickListener {
             val dialogView = layoutInflater.inflate(R.layout.dialog_custom_ott_app, null)
             val etAppName = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.et_app_name)
@@ -300,6 +341,13 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
 
         syncProvider?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
             showSyncProviderDialog()
+            true
+        }
+
+        val tmdbSyncPreference = findPreference<Preference>("tmdb_sync_key")
+        tmdbSyncPreference?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            val intent = Intent(requireContext(), Class.forName("com.wirelessalien.android.moviedb.activity.TmdbSyncActivity"))
+            startActivity(intent)
             true
         }
 

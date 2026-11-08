@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reminders_settings_title">Erinnerungen</string>
+    <string name="reminders_movie_premieres_title">Filmpremieren</string>
+    <string name="reminders_movie_premieres_summary">Benachrichtigungen für Filme auf deiner Watchlist</string>
+    <string name="reminders_new_episodes_title">Neue Episoden</string>
+    <string name="reminders_new_episodes_summary">Benachrichtigungen für neue Episoden von Serien, die du schaust oder planst zu schauen</string>
+    <string name="reminders_new_seasons_title">Neue Staffeln</string>
+    <string name="reminders_new_seasons_summary">Benachrichtigungen für neue Staffeln von Serien, die du schaust oder planst zu schauen</string>
+    <string name="reminders_time_of_day_title">Tageszeit</string>
+    <string name="reminders_time_of_day_summary">Wann sollen Erinnerungen gesendet werden?</string>
+    <string name="reminders_days_before_title">Erinnere mich</string>
+    <string name="reminders_days_before_0">Am Tag der Veröffentlichung</string>
+    <string name="reminders_days_before_1">1 Tag vorher</string>
+    <string name="reminders_days_before_2">2 Tage vorher</string>
+    <string name="reminders_days_before_3">3 Tage vorher</string>
+    <string name="reminders_days_before_7">1 Woche vorher</string>
+</resources>

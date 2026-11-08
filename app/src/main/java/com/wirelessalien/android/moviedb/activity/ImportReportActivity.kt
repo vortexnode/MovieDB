@@ -41,7 +41,12 @@ class ImportReportActivity : AppCompatActivity() {
 
         if (reportJsonPath != null) {
             try {
-                val reportJson = File(reportJsonPath).readText()
+                val reportJson = if (reportJsonPath.startsWith("content://")) {
+                    contentResolver.openInputStream(Uri.parse(reportJsonPath))?.bufferedReader()?.use { it.readText() }
+                        ?: throw Exception("Could not open content URI")
+                } else {
+                    File(reportJsonPath).readText()
+                }
                 val report = Gson().fromJson(reportJson, ImportReport::class.java)
 
                 binding.textViewSummary.text = getString(
@@ -73,23 +78,30 @@ class ImportReportActivity : AppCompatActivity() {
     }
 
     private fun shareCsvFile(csvPath: String) {
-        val file = File(csvPath)
-        if (file.exists()) {
-            val uri: Uri = FileProvider.getUriForFile(
-                this,
-                "${applicationContext.packageName}.provider",
-                file
-            )
-            val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                type = "text/csv"
-                putExtra(Intent.EXTRA_STREAM, uri)
-                putExtra(Intent.EXTRA_SUBJECT, "Import Report")
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            startActivity(Intent.createChooser(shareIntent, getString(R.string.share_import_report)))
+        val uri: Uri
+        if (csvPath.startsWith("content://")) {
+            uri = Uri.parse(csvPath)
         } else {
-            Toast.makeText(this, getString(R.string.csv_file_not_found), Toast.LENGTH_SHORT).show()
+            val file = File(csvPath)
+            if (file.exists()) {
+                uri = FileProvider.getUriForFile(
+                    this,
+                    "${applicationContext.packageName}.provider",
+                    file
+                )
+            } else {
+                Toast.makeText(this, getString(R.string.csv_file_not_found), Toast.LENGTH_SHORT).show()
+                return
+            }
         }
+
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/csv"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            putExtra(Intent.EXTRA_SUBJECT, "Import Report")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        startActivity(Intent.createChooser(shareIntent, getString(R.string.share_import_report)))
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

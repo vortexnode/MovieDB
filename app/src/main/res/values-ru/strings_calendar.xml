@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="release_calendar">Календарь релизов</string>
+    <string name="calendar_view_agenda">Повестка дня</string>
+    <string name="calendar_view_month">Месяц</string>
+    <string name="calendar_filter_all">Все</string>
+    <string name="calendar_filter_movies">Фильмы</string>
+    <string name="calendar_filter_episodes">Эпизоды</string>
+    <string name="calendar_filter_new_seasons">Новые сезоны</string>
+    <string name="calendar_season_premiere">Премьера %1$d сезона</string>
+    <string name="calendar_movie_release">Релиз фильма</string>
+    <string name="calendar_refresh_data">Обновить данные</string>
+    <string name="calendar_no_releases">Нет релизов в этот день</string>
+</resources>

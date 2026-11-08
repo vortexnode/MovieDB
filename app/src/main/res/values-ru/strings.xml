@@ -714,4 +714,5 @@
     <string name="detected_files">Detected files:
 %1$s</string>
     <string name="no_csv_files_found">No valid CSV files found in the selected location.</string>
+    <string name="tmdb_sync_preference_title">Синхронизация с TMDB</string>
 </resources>

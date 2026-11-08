@@ -1,31 +1,10 @@
-<!--
-  ~     This file is part of "ShowCase" formerly Movie DB. <https://github.com/WirelessAlien/MovieDB>
-  ~     forked from <https://notabug.org/nvb/MovieDB>
-  ~
-  ~     Copyright (C) 2024  WirelessAlien <https://github.com/WirelessAlien>
-  ~
-  ~     ShowCase is free software: you can redistribute it and/or modify
-  ~     it under the terms of the GNU General Public License as published by
-  ~     the Free Software Foundation, either version 3 of the License, or
-  ~     (at your option) any later version.
-  ~
-  ~     ShowCase is distributed in the hope that it will be useful,
-  ~     but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~     GNU General Public License for more details.
-  ~
-  ~     You should have received a copy of the GNU General Public License
-  ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
-  -->
-
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
-    android:viewportWidth="960"
-    android:viewportHeight="960"
-    android:tint="?attr/colorControlNormal"
-    android:autoMirrored="true">
+    android:viewportWidth="24"
+    android:viewportHeight="24">
   <path
-      android:fillColor="@android:color/white"
-      android:pathData="M504,480L348,324Q337,313 337,296Q337,279 348,268Q359,257 376,257Q393,257 404,268L588,452Q594,458 596.5,465Q599,472 599,480Q599,488 596.5,495Q594,502 588,508L404,692Q393,703 376,703Q359,703 348,692Q337,681 337,664Q337,647 348,636L504,480Z"/>
+      android:fillColor="?attr/colorControlNormal"
+      android:pathData="M10,6L8.59,7.41 13.17,12l-4.58,4.59L10,18l6,-6L10,6z"/>
 </vector>

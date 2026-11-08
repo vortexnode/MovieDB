@@ -54,6 +54,22 @@ class TraktImportActivity : BaseActivity() {
                 startImportService()
             }
         }
+
+        val btnLastReport = findViewById<Button>(R.id.btn_last_report)
+        btnLastReport.setOnClickListener {
+            val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+            val jsonPath = prefs.getString("trakt_last_report_json_path", null)
+            val csvPath = prefs.getString("trakt_last_report_csv_path", null)
+            if (jsonPath != null) {
+                val intent = Intent(this, ImportReportActivity::class.java).apply {
+                    putExtra("report_json_path", jsonPath as String)
+                    if (csvPath != null) putExtra("report_csv_path", csvPath as String)
+                }
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, getString(R.string.no_report_found), Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun startImportService() {

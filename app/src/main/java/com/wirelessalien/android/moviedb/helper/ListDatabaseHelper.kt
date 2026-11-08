@@ -108,6 +108,32 @@ class ListDatabaseHelper(context: Context?) :
         db.close()
     }
 
+    fun getAllLists(): List<Pair<Int, String>> {
+        val lists = mutableListOf<Pair<Int, String>>()
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT $COLUMN_LIST_ID, $COLUMN_LIST_NAME FROM $TABLE_LISTS", null)
+        if (cursor.moveToFirst()) {
+            do {
+                lists.add(Pair(cursor.getInt(0), cursor.getString(1)))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return lists
+    }
+
+    fun getListItems(listId: Int): List<Pair<String, Int>> {
+        val items = mutableListOf<Pair<String, Int>>()
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT $COLUMN_MEDIA_TYPE, $COLUMN_MOVIE_ID FROM $TABLE_LIST_DATA WHERE $COLUMN_LIST_ID = ?", arrayOf(listId.toString()))
+        if (cursor.moveToFirst()) {
+            do {
+                items.add(Pair(cursor.getString(0), cursor.getInt(1)))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return items
+    }
+
     override fun close() {
         super.close()
     }
