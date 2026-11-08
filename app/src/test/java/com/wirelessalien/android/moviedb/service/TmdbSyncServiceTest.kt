@@ -45,4 +45,31 @@ class TmdbSyncServiceTest {
         assertEquals(false, existingEpisodes.contains("123_1_3"))
         assertEquals(false, existingEpisodes.contains("124_1_1"))
     }
+
+    @Test
+    fun testMediaTypeMapping() {
+        val mapMediaType = { mediaTypeRaw: String ->
+            if (mediaTypeRaw.equals("show", ignoreCase = true)) "tv" else mediaTypeRaw.lowercase()
+        }
+
+        assertEquals("tv", mapMediaType("show"))
+        assertEquals("tv", mapMediaType("SHOW"))
+        assertEquals("movie", mapMediaType("movie"))
+        assertEquals("movie", mapMediaType("MOVIE"))
+        assertEquals("tv", mapMediaType("tv"))
+    }
+
+    @Test
+    fun testListDuplicatePrevention() {
+        val existingListItems = setOf("movie_123", "tv_456")
+        val isDuplicate = { type: String, tmdbId: Int ->
+            existingListItems.contains("${type}_${tmdbId}")
+        }
+
+        assertEquals(true, isDuplicate("movie", 123))
+        assertEquals(true, isDuplicate("tv", 456))
+        assertEquals(false, isDuplicate("movie", 456))
+        assertEquals(false, isDuplicate("tv", 123))
+        assertEquals(false, isDuplicate("movie", 789))
+    }
 }

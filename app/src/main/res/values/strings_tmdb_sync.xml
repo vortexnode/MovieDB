@@ -5,6 +5,7 @@
     <string name="tmdb_sync_favorites">Sync Favorites</string>
     <string name="tmdb_sync_watchlist">Sync Watchlist</string>
     <string name="tmdb_sync_lists">Sync Custom Lists (from tags)</string>
+    <string name="tmdb_sync_local_lists">Sync Local Lists</string>
     <string name="tmdb_sync_dry_run">Dry Run (Calculate counts only)</string>
     <string name="tmdb_sync_start">Start Sync</string>
     <string name="tmdb_sync_list_selection">Select tags to sync as lists:</string>

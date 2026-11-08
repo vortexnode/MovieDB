@@ -13,6 +13,7 @@ import androidx.core.app.NotificationCompat
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.data.ListDataTmdb
+import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.ImportIssue
 import com.wirelessalien.android.moviedb.helper.ImportReason
 import com.wirelessalien.android.moviedb.helper.ImportReport
@@ -66,6 +67,7 @@ class TmdbSyncService : Service() {
         val syncFavorites = intent?.getBooleanExtra("syncFavorites", false) ?: false
         val syncWatchlist = intent?.getBooleanExtra("syncWatchlist", false) ?: false
         val syncLists = intent?.getBooleanExtra("syncLists", false) ?: false
+        val syncLocalLists = intent?.getBooleanExtra("syncLocalLists", false) ?: false
         val dryRun = intent?.getBooleanExtra("dryRun", false) ?: false
         val selectedTags = intent?.getLongArrayExtra("selectedTags") ?: longArrayOf()
 
@@ -74,7 +76,7 @@ class TmdbSyncService : Service() {
 
         serviceScope.launch {
             try {
-                performSync(syncRatings, syncFavorites, syncWatchlist, syncLists, dryRun, selectedTags)
+                performSync(syncRatings, syncFavorites, syncWatchlist, syncLists, syncLocalLists, dryRun, selectedTags)
             } catch (e: Exception) {
                 Log.e(TAG, "Error in TMDB sync", e)
                 updateNotification(getString(R.string.tmdb_sync_failed), 0, 0, isFinished = true, isError = true)
@@ -144,6 +146,7 @@ class TmdbSyncService : Service() {
         syncFavorites: Boolean,
         syncWatchlist: Boolean,
         syncLists: Boolean,
+        syncLocalLists: Boolean,
         dryRun: Boolean,
         selectedTags: LongArray
     ) {
@@ -422,6 +425,81 @@ class TmdbSyncService : Service() {
             cursor.close()
         }
 
+        if (syncLocalLists) {
+            val listDb = ListDatabaseHelper(applicationContext)
+            val localLists = listDb.getAllLists()
+
+            for ((localListId, listName) in localLists) {
+                listsCount++
+                var tmdbListId = existingListsMap[listName]
+                val existingListItems = mutableSetOf<String>()
+
+                if (!dryRun && tmdbListId == null) {
+                    updateNotification("Creating Local List: $listName", 0, 100)
+                    val url = "https://api.themoviedb.org/4/list"
+                    val json = JSONObject().apply {
+                        put("name", listName)
+                        put("iso_3166_1", "US")
+                        put("iso_639_1", "en")
+                        put("public", false)
+                    }
+                    val (success, statusCode) = apiPostWithStatus(url, json, accessToken)
+                    if (!success) {
+                        report.failed++
+                        report.issues.add(ImportIssue(0, listName, null, ImportReason.TMDB_PUSH_FAILED, "HTTP $statusCode"))
+                        continue // Skip adding items if list creation failed
+                    }
+                    try {
+                        val fetcher = FetchList(this, null)
+                        val lists = fetcher.fetchLists()
+                        lists?.forEach { existingListsMap[it.name] = it.id }
+                        tmdbListId = existingListsMap[listName]
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                } else if (tmdbListId != null) {
+                    existingListItems.addAll(fetchExisting("https://api.themoviedb.org/4/list/$tmdbListId", accessToken, "media_type", "media_id"))
+                }
+
+                val listItems = listDb.getListItems(localListId)
+                val count = listItems.size
+                var i = 0
+
+                for ((mediaTypeRaw, tmdbId) in listItems) {
+                    val type = if (mediaTypeRaw.equals("show", ignoreCase = true)) "tv" else mediaTypeRaw.lowercase()
+
+                    if (existingListItems.contains("${type}_${tmdbId}")) {
+                        report.skipped++
+                        i++
+                        continue
+                    }
+
+                    listItemsCount++
+                    if (!dryRun && tmdbListId != null) {
+                        updateNotification("Adding to List $listName: $i/$count", i, count)
+                        val url = "https://api.themoviedb.org/4/list/$tmdbListId/items"
+                        val json = JSONObject().apply {
+                            val itemsArray = JSONArray()
+                            val itemObject = JSONObject()
+                            itemObject.put("media_type", type)
+                            itemObject.put("media_id", tmdbId)
+                            itemsArray.put(itemObject)
+                            put("items", itemsArray)
+                        }
+                        val (success, statusCode) = apiPostWithStatus(url, json, accessToken)
+                        if (!success) {
+                            report.failed++
+                            report.issues.add(ImportIssue(i, "$listName item $tmdbId", tmdbId.toLong(), ImportReason.TMDB_PUSH_FAILED, "HTTP $statusCode"))
+                        } else {
+                            report.inserted++
+                        }
+                    }
+                    i++
+                }
+            }
+            listDb.close()
+        }
+
         if (syncLists && selectedTags.isNotEmpty()) {
             for (tagId in selectedTags) {
                 var tagName = "List"
@@ -548,13 +626,17 @@ class TmdbSyncService : Service() {
         if (dryRun) {
             val result = getString(R.string.tmdb_sync_dry_run_results, ratingsCount, favoritesCount, watchlistCount, listsCount, listItemsCount)
             updateNotification(result, 0, 0, isFinished = true, isError = false)
+
+            val broadcastIntent = Intent("com.wirelessalien.android.moviedb.TMDB_SYNC_RESULT")
+            broadcastIntent.putExtra("result", result)
+            sendBroadcast(broadcastIntent)
         } else {
             val errStr = if (report.issues.isNotEmpty()) "\nErrors: ${report.issues.size}" else ""
             updateNotification(getString(R.string.tmdb_sync_completed) + errStr, 100, 100, isFinished = true, isError = false, reportPath = reportJsonPath, reportCsvPath = reportCsvPath)
         }
 
         delay(5000)
-        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopForeground(STOP_FOREGROUND_DETACH)
         stopSelf()
     }
 
