@@ -201,9 +201,11 @@ class TmdbSyncService : Service() {
                                 for (i in 0 until results.length()) {
                                     val obj = results.getJSONObject(i)
                                     if (idKey2 != null && idKey3 != null) {
-                                        existingIds.add("${obj.getLong(idKey)}_${obj.getInt(idKey2)}_${obj.getInt(idKey3)}")
+                                        existingIds.add("${obj.optString(idKey)}_${obj.optString(idKey2)}_${obj.optString(idKey3)}")
+                                    } else if (idKey2 != null) {
+                                        existingIds.add("${obj.optString(idKey)}_${obj.optString(idKey2)}")
                                     } else {
-                                        existingIds.add(obj.getLong(idKey).toString())
+                                        existingIds.add(obj.optString(idKey))
                                     }
                                 }
                             }
@@ -458,9 +460,9 @@ class TmdbSyncService : Service() {
                         e.printStackTrace()
                     }
                 } else if (!dryRun && tmdbListId != null) {
-                    // Fetch existing items for this list (not using idKey because it's id, wait id of the item or media_id?)
-                    // List item schema in V4 has "id" for the list entry id, and "media_id" for the tmdb id
-                    existingListItems.addAll(fetchExisting("https://api.themoviedb.org/4/list/$tmdbListId", accessToken, "media_id"))
+                    // Fetch existing items for this list
+                    // List item schema in V4 has "media_type" and "media_id"
+                    existingListItems.addAll(fetchExisting("https://api.themoviedb.org/4/list/$tmdbListId", accessToken, "media_type", "media_id"))
                 }
 
                 val query = """
@@ -478,7 +480,7 @@ class TmdbSyncService : Service() {
                     val isMovie = cursor.getInt(cursor.getColumnIndexOrThrow("movie")) == 1
                     val type = if (isMovie) "movie" else "tv"
 
-                    if (!dryRun && existingListItems.contains(tmdbId.toString())) {
+                    if (existingListItems.contains("${type}_${tmdbId}")) {
                         report.skipped++
                         i++
                         continue
