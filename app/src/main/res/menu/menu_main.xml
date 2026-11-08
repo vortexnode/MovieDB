@@ -40,4 +40,9 @@
         android:icon="@drawable/ic_account_border"
         android:title="@string/action_account"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_recommendations"
+        android:title="@string/title_recommendations"
+        android:icon="@drawable/ic_star"
+        app:showAsAction="never" />
 </menu>
