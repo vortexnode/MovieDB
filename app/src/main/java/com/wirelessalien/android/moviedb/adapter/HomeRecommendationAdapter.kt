@@ -44,19 +44,7 @@ class HomeRecommendationAdapter(private val results: List<RecommendationResult>)
         holder.binding.scoreBadge.text = String.format(Locale.getDefault(), "%.1f", result.tmdbScore)
 
         holder.binding.root.setOnClickListener { view ->
-            val json = JSONObject().apply {
-                put("id", result.tmdbId)
-                if (result.isMovie) {
-                    put("title", result.title)
-                    put("release_date", result.releaseDate)
-                } else {
-                    put("name", result.title)
-                    put("first_air_date", result.releaseDate)
-                }
-                put("poster_path", result.posterPath)
-                put("overview", result.overview)
-                put("vote_average", result.tmdbScore)
-            }
+            val json = com.wirelessalien.android.moviedb.helper.RecommendationIntentHelper.createMovieObjectJson(result)
             val intent = Intent(view.context, DetailActivity::class.java)
             intent.putExtra("movieObject", json.toString())
             if (!result.isMovie) {
