@@ -151,7 +151,7 @@
         <provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.provider" android:exported="false" android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/provider_paths" />
         </provider>
-        <activity android:name=".activity.MoviebaseImportActivity" android:exported="false" />
+        <activity android:name=".activity.MoviebaseImportActivity" android:theme="@style/AppTheme" android:exported="false" />
         <service android:name=".service.MoviebaseImportService" android:exported="false" android:foregroundServiceType="dataSync" />
     </application>
     <queries>
