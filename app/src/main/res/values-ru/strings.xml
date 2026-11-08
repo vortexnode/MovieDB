@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="between_two_dates">Между двумя датами</string>
     <string name="title_persistent_filtering">Постоянный фильтр</string>
@@ -697,4 +697,12 @@
     <string name="failed_to_restore_database_from_webdav">Не удалось восстановить базу данных из WebDAV</string>
     <string name="webdav_backup_failed">Ошибка резервной копии WebDAV</string>
     <string name="username">Имя пользователя</string>
+    <string name="moviebase_import">Moviebase Import</string>
+    <string name="moviebase_import_description">Import your watched items, ratings, watchlist, favorites, collection, lists, and people from a Moviebase export (.zip or folder).</string>
+    <string name="select_moviebase_export_folder">Select Extracted Folder</string>
+    <string name="select_moviebase_export_zip">Select .zip File</string>
+    <string name="no_file_selected">No file or folder selected</string>
+    <string name="detected_files">Detected files:
+%1$s</string>
+    <string name="no_csv_files_found">No valid CSV files found in the selected location.</string>
 </resources>

@@ -1,23 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-  ~     This file is part of "ShowCase" formerly Movie DB. <https://github.com/WirelessAlien/MovieDB>
-  ~     forked from <https://notabug.org/nvb/MovieDB>
-  ~
-  ~     Copyright (C) 2024  WirelessAlien <https://github.com/WirelessAlien>
-  ~
-  ~     ShowCase is free software: you can redistribute it and/or modify
-  ~     it under the terms of the GNU General Public License as published by
-  ~     the Free Software Foundation, either version 3 of the License, or
-  ~     (at your option) any later version.
-  ~
-  ~     ShowCase is distributed in the hope that it will be useful,
-  ~     but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~     GNU General Public License for more details.
-  ~
-  ~     You should have received a copy of the GNU General Public License
-  ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
-  -->
-
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="not_watched">Not Watched</string>
     <string name="i_am_watching">Watching Now!</string>
@@ -338,7 +319,6 @@
     <string name="click_again_to_delete">Click again to confirm delete</string>
     <string name="no_release_dates_found">No release dates found for your region.</string>
     <string name="production_companies">Production Companies</string>
-
     <string-array name="media_types">
         <item>digital</item>
         <item>bluray</item>
@@ -405,19 +385,16 @@
         <item>9.1</item>
         <item>10.1</item>
     </string-array>
-
     <string-array name="sync_providers">
         <item>local</item>
         <item>tmdb</item>
         <item>trakt</item>
     </string-array>
-
     <string-array name="sync_providers_display">
         <item>Local</item>
         <item>TMDB</item>
         <item>Trakt</item>
     </string-array>
-
     <plurals name="years">
         <item quantity="one">%d year</item>
         <item quantity="other">%d years</item>
@@ -447,15 +424,12 @@
     <string name="nested_sorting_explanation">When enabled, your media will first be sorted by category (e.g., Watching, Watched), and then sorted again by the other option you\'ve selected (like Release Date or Best Rated).</string>
     <string name="same_as_start_date">Same as start date</string>
     <string name="same_as_end_date">Same as end date</string>
-
     <string name="no_permission_dialog_ok">OK</string>
     <string name="no_permission_dialog_cancel">Cancel</string>
-
     <string name="place_of_birth">Place of Birth: %1$s</string>
     <string name="birthday">Birthday: %1$s</string>
     <string name="cast_movie_title">Part of the cast in</string>
     <string name="crew_movie_title">Part of the crew in</string>
-
     <string name="movie_added">Movie added</string>
     <string name="series_added">Show added</string>
     <string name="show_added_error">Could not add show to database</string>
@@ -484,7 +458,6 @@
         <item>@string/dropped</item>
     </string-array>
     <string name="show_category">"Category: "</string>
-
     <string name="sort_by">Sort By</string>
     <string name="default_sort">Default</string>
     <string name="most_popular">Most Popular</string>
@@ -506,30 +479,23 @@
     <string name="keyword_text">Exclude and include keywords by putting their IDs in the respective text box below.\n * Use , (comma) to indicate you mean both keywords.\n * Use | (pipe) to indicate you want one or the other.</string>
     <string name="with_keywords_hint">Include</string>
     <string name="without_keywords_hint">Exclude</string>
-
     <string name="movie_tab_title">Movies</string>
     <string name="series_tab_title">Shows</string>
     <string name="saved_tab_title">Saved</string>
-
     <string name="write_to_external_storage_as">"Saved as: "</string>
     <string name="choose_export_file">Choose a file format to export:</string>
     <string name="choose_file">Choose a file to import:</string>
     <string name="import_cancel">Cancel</string>
     <string name="file_not_found_exception">Could not find the file</string>
-
     <string name="hint_search">Search…</string>
-
     <string name="action_export">Export</string>
     <string name="action_import">Import</string>
-
     <string name="action_save">Save</string>
-
     <string name="title_general">General</string>
     <string name="title_show_cast">Display cast</string>
     <string name="title_show_crew">Display crew</string>
     <string name="title_show_recommendations">Display recommendations</string>
     <string name="title_show_save_dialog">Display save dialog</string>
-
     <string name="custom_dns_category">Network Rule</string>
     <string name="custom_dns_enabled_title">Use custom DNS (DNS-over-HTTPS)</string>
     <string name="custom_dns_enabled_summary">Route DNS queries over HTTPS to bypass ISP-level DNS blocks (e.g. TMDB blocked by Jio)</string>
@@ -547,7 +513,6 @@
     <string name="title_live_search">Use live search</string>
     <string name="title_chips_visibility">Chips visibility</string>
     <string name="summary_chips_visibility">Choose which chips to hide in details screen</string>
-
     <string name="title_hide_tabs">Tabs visibility</string>
     <string name="summary_hide_tabs">Restart the app to apply changes.</string>
     <string name="summary_tab_visibility">If all tabs are hidden, the Home tab will be displayed because the app cannot be displayed with no tabs.</string>
@@ -558,17 +523,13 @@
     <string name="title_api_language">API language</string>
     <string name="summary_api_language">Set the language of the API data (otherwise defaults to system language).</string>
     <string name="text_tmdb_credits">This product uses the TMDB API but is not endorsed or certified by TMDB</string>
-
     <string name="action_settings">Settings</string>
-
     <string name="no_internet_connection">There is no Internet connection</string>
-
     <string name="title_movies">Movies</string>
     <string name="title_series">Shows</string>
     <string name="title_saved">Saved</string>
     <string name="title_account">Account</string>
     <string name="title_people">People</string>
-
     <string name="collapse_icon_description">Collapses or expands the view</string>
     <string name="image_description">Poster of the show</string>
     <string name="person_image_description">Picture of the person</string>
@@ -666,9 +627,7 @@
     <string name="rated">Rated</string>
     <string name="tv_show">TV Show</string>
     <string name="type">Type</string>
-
     <string name="just_watch_attribution">This app uses JustWatch data to show streaming service info.</string>
-
     <string name="share">Share ShowCase</string>
     <string name="share_2">Share</string>
     <string name="donate">Support</string>
@@ -694,9 +653,7 @@
     <string name="rating_db">Rating (DB): </string>
     <string name="watched_on_not_set">Watched On: Not set</string>
     <string name="account_data_tab_title">Account</string>
-
     <string name="hide_the_account_tab">Hide the \'Account (TMDB)\' tab</string>
-
     <string name="loading_in_progress">Please wait, loading in progress…</string>
     <string name="save_to_database">Save to database</string>
     <string name="save">Save</string>
@@ -770,7 +727,6 @@
     <string name="select_a_date">Select a Date</string>
     <string name="failed_to_retrieve_account_id">Could not retrieve account ID</string>
     <string name="season">"Season "</string>
-
     <string name="watching1">Watching: %1$d</string>
     <string name="watched1">Watched: %1$d</string>
     <string name="plan_to_watch1">Plan to Watch: %1$d</string>
@@ -790,9 +746,7 @@
     <string name="episode_title">S:%1$d E:%2$d %3$s</string>
     <string name="season_number">S: %1$d</string>
     <string name="episode_number">E: %1$d</string>
-
     <string name="review">Review</string>
-
     <string name="month_year_format" translatable="false">%1$s-%2$d</string>
     <string name="month_year_format1" translatable="false">%1$s-%2$s</string>
     <string name="rating1">Rating</string>
@@ -843,13 +797,10 @@
     <string name="watch_providers">Watch Providers</string>
     <string name="use_and_logic_for_watch_providers">Require all selected watch providers</string>
     <string name="watch_providers_logic_explanation">When enabled, only media available on ALL selected watch providers will be shown.</string>
-
     <string name="app_language">App language</string>
     <string name="episode_groups">Episode Groups</string>
     <string name="chip_show_movie">Shows &amp; Movies</string>
     <string name="chip_word">Keywords</string>
-
-    <!-- WebDAV Sync & Backup -->
     <string name="webdav_backup">WebDAV Backup</string>
     <string name="enable_webdav_sync_backup">Enable WebDAV Sync/Backup</string>
     <string name="webdav_server_url_hint">WebDAV Server URL (e.g. https://server.com/backup.db)</string>
@@ -896,7 +847,6 @@
     <string name="ratings_insight_desc">Distribution of your ratings</string>
     <string name="no_dates_need_fixing">No dates need fixing.</string>
     <string name="invalid_dates_review_message">The following entries have invalid dates from an earlier app version. Please review and confirm the updates.</string>
-
     <string name="play">Play</string>
     <string name="play_in">Play in…</string>
     <string name="always_ask">Always Ask</string>
@@ -907,27 +857,23 @@
     <string name="disney_plus">Disney+</string>
     <string name="hulu">Hulu</string>
     <string name="stremio">Stremio</string>
-
     <string name="custom_ott_app">Preferred App</string>
     <string name="custom_ott_package_title">App Package ID</string>
     <string name="custom_ott_package_summary">Package ID of the app to launch (e.g. com.example.app)</string>
     <string name="custom_ott_link_title">OTT Deep Link</string>
     <string name="custom_ott_link_summary">Search deep link URL. Use {title} for URL-encoded title or {imdbId} for IMDB or other media ID.</string>
-
     <string name="custom_ott_name_title">App Name</string>
     <string name="custom_ott_dialog_instruction">Enter the details of the app you want to use for playing media. You must provide a valid Package ID and Deep Link. The {title} and {imdbId} placeholders can be used in the Deep Link to substitute the movie/show information.</string>
     <string name="custom_app_preference">Preferred App Preference</string>
     <string name="could_not_open_custom_app_or_deep_link">Could not open preferred app or deep link</string>
     <string name="could_not_open_custom_app">Could not open preferred app</string>
     <string name="custom_app_not_found">App not found</string>
-
     <string name="chip_new">New</string>
     <string name="chip_released">Released</string>
     <string name="no_supported_apps_installed">No supported apps installed</string>
     <string name="subscription_issue_title">Issue with Subscription</string>
     <string name="subscription_issue_summary">You will lose premium in %s if the issue persists.</string>
     <string name="refresh_purchase_status">Refresh Status</string>
-
     <string name="go_ad_free">Get Premium</string>
     <string name="go_ad_free_summary">Unlock premium features, get priority support, and help support ongoing development</string>
     <string name="manage_consent">Manage Consent</string>
@@ -954,4 +900,12 @@
     <string name="ads_desc">Use the app for free. The app is open-source and free to use; Premium is an optional way to support the project.</string>
     <string name="ads_title">Free Tier</string>
     <string name="premium_title">Premium</string>
+    <string name="moviebase_import">Moviebase Import</string>
+    <string name="moviebase_import_description">Import your watched items, ratings, watchlist, favorites, collection, lists, and people from a Moviebase export (.zip or folder).</string>
+    <string name="select_moviebase_export_folder">Select Extracted Folder</string>
+    <string name="select_moviebase_export_zip">Select .zip File</string>
+    <string name="no_file_selected">No file or folder selected</string>
+    <string name="detected_files">Detected files:
+%1$s</string>
+    <string name="no_csv_files_found">No valid CSV files found in the selected location.</string>
 </resources>
