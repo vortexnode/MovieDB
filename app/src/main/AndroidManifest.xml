@@ -154,7 +154,7 @@
         <activity android:name=".activity.MoviebaseImportActivity" android:exported="false" />
         <service android:name=".service.MoviebaseImportService" android:exported="false" android:foregroundServiceType="dataSync" />
         <service android:name=".service.TmdbSyncService" android:foregroundServiceType="dataSync"/>
-        <activity android:name=".activity.TmdbSyncActivity" />
+        <activity android:name=".activity.TmdbSyncActivity" android:theme="@style/AppTheme" />
     </application>
     <queries>
         <package android:name="com.netflix.mediaclient" />

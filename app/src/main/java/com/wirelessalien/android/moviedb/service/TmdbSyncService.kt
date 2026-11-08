@@ -463,8 +463,8 @@ class TmdbSyncService : Service() {
                     }
                 } else if (tmdbListId != null) {
                     // Fetch existing items for this list
-                    // List item schema in V4 has "media_type" and "media_id"
-                    existingListItems.addAll(fetchExisting("https://api.themoviedb.org/4/list/$tmdbListId", accessToken, "media_type", "media_id"))
+                    // The TMDB V4 list endpoint returns item JSON where the TMDB ID is under "id" and type is under "media_type"
+                    existingListItems.addAll(fetchExisting("https://api.themoviedb.org/4/list/$tmdbListId", accessToken, "media_type", "id"))
                 }
 
                 val query = """
