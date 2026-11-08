@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reminders_settings_title">Reminders</string>
+    <string name="reminders_movie_premieres_title">Movie Premieres</string>
+    <string name="reminders_movie_premieres_summary">Get notified when movies in your watchlist are released</string>
+    <string name="reminders_new_episodes_title">New Episodes</string>
+    <string name="reminders_new_episodes_summary">Get notified for new episodes of series you are watching or plan to watch</string>
+    <string name="reminders_new_seasons_title">New Seasons</string>
+    <string name="reminders_new_seasons_summary">Get notified when a new season starts for series you are watching or plan to watch</string>
+    <string name="reminders_time_of_day_title">Time of Day</string>
+    <string name="reminders_time_of_day_summary">When should reminders be sent?</string>
+    <string name="reminders_days_before_title">Remind me</string>
+    <string name="reminders_days_before_0">On the day of release</string>
+    <string name="reminders_days_before_1">1 day before release</string>
+    <string name="reminders_days_before_2">2 days before release</string>
+    <string name="reminders_days_before_3">3 days before release</string>
+    <string name="reminders_days_before_7">1 week before release</string>
+</resources>

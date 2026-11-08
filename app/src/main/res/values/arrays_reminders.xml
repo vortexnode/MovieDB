@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="reminders_days_before_entries">
+        <item>@string/reminders_days_before_0</item>
+        <item>@string/reminders_days_before_1</item>
+        <item>@string/reminders_days_before_2</item>
+        <item>@string/reminders_days_before_3</item>
+        <item>@string/reminders_days_before_7</item>
+    </string-array>
+    <string-array name="reminders_days_before_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>7</item>
+    </string-array>
+</resources>
