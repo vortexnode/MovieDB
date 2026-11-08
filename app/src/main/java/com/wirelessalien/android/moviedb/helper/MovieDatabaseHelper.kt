@@ -765,6 +765,13 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                 COLUMN_TAG_NAME + " TEXT NOT NULL UNIQUE);"
         database.execSQL(CREATE_TAGS_TABLE)
 
+        val CREATE_NOT_INTERESTED_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_NOT_INTERESTED + " (" +
+                COLUMN_NI_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_NI_TMDB_ID + " INTEGER NOT NULL, " +
+                COLUMN_NI_TYPE + " TEXT NOT NULL, " +
+                "UNIQUE(" + COLUMN_NI_TMDB_ID + ", " + COLUMN_NI_TYPE + ") ON CONFLICT IGNORE);"
+        database.execSQL(CREATE_NOT_INTERESTED_TABLE)
+
         val CREATE_MOVIE_TAGS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_MOVIE_TAGS + "(" +
                 COLUMN_MT_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_MT_MOVIE_ID + " INTEGER NOT NULL, " +
@@ -892,6 +899,13 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                     COLUMN_TAG_NAME + " TEXT NOT NULL UNIQUE);"
             database.execSQL(CREATE_TAGS_TABLE)
 
+        val CREATE_NOT_INTERESTED_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_NOT_INTERESTED + " (" +
+                COLUMN_NI_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_NI_TMDB_ID + " INTEGER NOT NULL, " +
+                COLUMN_NI_TYPE + " TEXT NOT NULL, " +
+                "UNIQUE(" + COLUMN_NI_TMDB_ID + ", " + COLUMN_NI_TYPE + ") ON CONFLICT IGNORE);"
+        database.execSQL(CREATE_NOT_INTERESTED_TABLE)
+
             val CREATE_MOVIE_TAGS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_MOVIE_TAGS + "(" +
                     COLUMN_MT_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     COLUMN_MT_MOVIE_ID + " INTEGER NOT NULL, " +
@@ -915,6 +929,14 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                     // Table might not exist yet if upgrading from < 16, handled by < 16 block calling onCreate or explicit SQL
                 }
             }
+        }
+        if (oldVersion < 18) {
+            val CREATE_NOT_INTERESTED_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_NOT_INTERESTED + " (" +
+                    COLUMN_NI_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COLUMN_NI_TMDB_ID + " INTEGER NOT NULL, " +
+                    COLUMN_NI_TYPE + " TEXT NOT NULL, " +
+                    "UNIQUE(" + COLUMN_NI_TMDB_ID + ", " + COLUMN_NI_TYPE + ") ON CONFLICT IGNORE);"
+            database.execSQL(CREATE_NOT_INTERESTED_TABLE)
         }
         onCreate(database)
     }
@@ -1238,11 +1260,16 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         const val databaseFileName = "movies.db"
         private const val DATABASE_FILE_NAME = "movies"
         private const val DATABASE_FILE_EXT = ".db"
-        private const val DATABASE_VERSION = 17
+        private const val DATABASE_VERSION = 18
 
         const val TABLE_TAGS = "tags"
         const val COLUMN_TAG_ID = "tag_id"
         const val COLUMN_TAG_NAME = "tag_name"
+
+        const val TABLE_NOT_INTERESTED = "not_interested"
+        const val COLUMN_NI_ID = "ni_id"
+        const val COLUMN_NI_TMDB_ID = "tmdb_id"
+        const val COLUMN_NI_TYPE = "type"
 
         const val TABLE_MOVIE_TAGS = "movie_tags"
         const val COLUMN_MT_ID = "mt_id"
@@ -1721,5 +1748,41 @@ if (parsed != null) {
         moviesCursor.close()
         
         return movies
+    }
+    fun insertNotInterested(tmdbId: Int, type: String) {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put(COLUMN_NI_TMDB_ID, tmdbId)
+            put(COLUMN_NI_TYPE, type)
+        }
+        db.insertWithOnConflict(TABLE_NOT_INTERESTED, null, values, SQLiteDatabase.CONFLICT_IGNORE)
+    }
+
+    fun isNotInterested(tmdbId: Int, type: String): Boolean {
+        val db = this.readableDatabase
+        val cursor = db.query(
+            TABLE_NOT_INTERESTED,
+            arrayOf(COLUMN_NI_ID),
+            "$COLUMN_NI_TMDB_ID = ? AND $COLUMN_NI_TYPE = ?",
+            arrayOf(tmdbId.toString(), type),
+            null, null, null
+        )
+        val exists = cursor.count > 0
+        cursor.close()
+        return exists
+    }
+
+    fun getNotInterestedItems(): List<Pair<Int, String>> {
+        val db = this.readableDatabase
+        val list = mutableListOf<Pair<Int, String>>()
+        val cursor = db.query(TABLE_NOT_INTERESTED, arrayOf(COLUMN_NI_TMDB_ID, COLUMN_NI_TYPE), null, null, null, null, null)
+        cursor.use {
+            while (it.moveToNext()) {
+                val tmdbId = it.getInt(it.getColumnIndexOrThrow(COLUMN_NI_TMDB_ID))
+                val type = it.getString(it.getColumnIndexOrThrow(COLUMN_NI_TYPE))
+                list.add(Pair(tmdbId, type))
+            }
+        }
+        return list
     }
 }
