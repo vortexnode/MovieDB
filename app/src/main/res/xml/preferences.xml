@@ -232,6 +232,22 @@
             android:summary="@string/hide_fetched_ratings_summary"
             android:title="@string/hide_fetched_ratings"
             app:iconSpaceReserved="false" />
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="ask_for_watch_date"
+            android:title="@string/ask_for_watch_date"
+            android:summary="@string/ask_for_watch_date_summary"
+            app:iconSpaceReserved="false" />
+
+        <androidx.preference.ListPreference
+            android:defaultValue="current_date"
+            android:key="default_watch_date"
+            android:title="@string/default_watch_date"
+            android:entries="@array/default_watch_date_entries"
+            android:entryValues="@array/default_watch_date_values"
+            app:dependency="ask_for_watch_date"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/title_data_usage"

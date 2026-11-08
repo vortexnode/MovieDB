@@ -714,4 +714,17 @@
     <string name="detected_files">Detected files:
 %1$s</string>
     <string name="no_csv_files_found">No valid CSV files found in the selected location.</string>
+    <string name="when_was_this_watched">Когда это было просмотрено?</string>
+    <string name="watch_date_right_now">Прямо сейчас</string>
+    <string name="watch_date_release_date">Дата выхода</string>
+    <string name="watch_date_another_date">Другая дата</string>
+    <string name="watch_date_unknown_date">Неизвестная дата</string>
+    <string name="watch_date_start_watching">Начать просмотр</string>
+    <string name="dont_ask_again_watch_date">Больше не спрашивать</string>
+    <string name="dont_ask_again_watch_date_note">Всегда будет использоваться текущая дата. Вы можете изменить это в настройках.</string>
+    <string name="ask_for_watch_date">Спрашивать дату просмотра</string>
+    <string name="default_watch_date">Дата просмотра по умолчанию</string>
+    <string name="ask_for_watch_date_summary">Показывать диалог для выбора даты при отметке как просмотренного.</string>
+    <string name="watch_date_current_date">Текущая дата</string>
+    <string name="watch_date_release_date_pref">Дата выхода</string>
 </resources>

@@ -108,4 +108,13 @@
         <item>stremio</item>
         <item>custom_app</item>
     </string-array>
+
+    <string-array name="default_watch_date_entries">
+        <item>@string/watch_date_current_date</item>
+        <item>@string/watch_date_release_date_pref</item>
+    </string-array>
+    <string-array name="default_watch_date_values">
+        <item>current_date</item>
+        <item>release_date</item>
+    </string-array>
 </resources>

@@ -19,6 +19,8 @@
  */
 package com.wirelessalien.android.moviedb.activity
 
+import com.wirelessalien.android.moviedb.helper.WatchDateHelper
+
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.UiModeManager
@@ -975,7 +977,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         MovieDatabaseHelper.COLUMN_CATEGORIES,
                         MovieDatabaseHelper.CATEGORY_WATCHING
                     )
-                    val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(Date())
+                    val currentDate = WatchDateHelper.getCurrentDate()
                     showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, currentDate)
                     addMovieToDatabase(showValues)
                     addItemtoTmdb()
