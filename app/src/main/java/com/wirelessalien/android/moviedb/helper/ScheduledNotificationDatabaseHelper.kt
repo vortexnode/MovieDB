@@ -31,7 +31,7 @@ class ScheduledNotificationDatabaseHelper(context: Context) : SQLiteOpenHelper(c
 
     companion object {
         private const val DATABASE_NAME = "scheduled_notifications.db"
-        private const val DATABASE_VERSION = 1
+        private const val DATABASE_VERSION = 2
         const val TABLE_SCHEDULED_NOTIFICATIONS = "scheduled_notifications"
         const val COLUMN_ID = "_id"
         const val COLUMN_NOTIFICATION_KEY = "notification_key"
@@ -40,6 +40,8 @@ class ScheduledNotificationDatabaseHelper(context: Context) : SQLiteOpenHelper(c
         const val COLUMN_EPISODE_NUMBER = "episode_number"
         const val COLUMN_TYPE = "type"
         const val COLUMN_ALARM_TIME = "alarm_time"
+        const val COLUMN_MEDIA_ID = "media_id"
+        const val COLUMN_SEASON = "season"
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -51,15 +53,19 @@ class ScheduledNotificationDatabaseHelper(context: Context) : SQLiteOpenHelper(c
                 $COLUMN_EPISODE_NAME TEXT,
                 $COLUMN_EPISODE_NUMBER TEXT,
                 $COLUMN_TYPE TEXT,
-                $COLUMN_ALARM_TIME INTEGER
+                $COLUMN_ALARM_TIME INTEGER,
+                $COLUMN_MEDIA_ID INTEGER NOT NULL DEFAULT 0,
+                $COLUMN_SEASON INTEGER
             )
         """.trimIndent()
         db.execSQL(createTableQuery)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_SCHEDULED_NOTIFICATIONS")
-        onCreate(db)
+        if (oldVersion < 2) {
+            db.execSQL("ALTER TABLE $TABLE_SCHEDULED_NOTIFICATIONS ADD COLUMN $COLUMN_MEDIA_ID INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE $TABLE_SCHEDULED_NOTIFICATIONS ADD COLUMN $COLUMN_SEASON INTEGER")
+        }
     }
 
     fun addScheduledNotification(notification: ScheduledNotification): Long {
@@ -70,6 +76,8 @@ class ScheduledNotificationDatabaseHelper(context: Context) : SQLiteOpenHelper(c
             put(COLUMN_EPISODE_NUMBER, notification.episodeNumber)
             put(COLUMN_TYPE, notification.type)
             put(COLUMN_ALARM_TIME, notification.alarmTime)
+            put(COLUMN_MEDIA_ID, notification.mediaId)
+            put(COLUMN_SEASON, notification.season)
         }
         return writableDatabase.insert(TABLE_SCHEDULED_NOTIFICATIONS, null, values)
     }
@@ -91,7 +99,9 @@ class ScheduledNotificationDatabaseHelper(context: Context) : SQLiteOpenHelper(c
                         episodeName = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EPISODE_NAME)),
                         episodeNumber = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EPISODE_NUMBER)),
                         type = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TYPE)),
-                        alarmTime = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ALARM_TIME))
+                        alarmTime = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ALARM_TIME)),
+                        mediaId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_MEDIA_ID)),
+                        season = if (cursor.isNull(cursor.getColumnIndexOrThrow(COLUMN_SEASON))) null else cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SEASON))
                     )
                 )
             } while (cursor.moveToNext())

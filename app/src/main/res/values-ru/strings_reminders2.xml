@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reminders_only_library_title">Только для моей библиотеки</string>
+    <string name="reminders_only_library_summary">Отправлять напоминания только для фильмов и сериалов из вашей локальной библиотеки</string>
+    <string name="reminders_group_summary">Сегодня новых серий: %1$d</string>
+</resources>

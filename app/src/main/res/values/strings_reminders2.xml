@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reminders_only_library_title">Only for my library</string>
+    <string name="reminders_only_library_summary">Only send reminders for movies and shows in your local library</string>
+    <string name="reminders_group_summary">%1$d new episodes today</string>
+</resources>

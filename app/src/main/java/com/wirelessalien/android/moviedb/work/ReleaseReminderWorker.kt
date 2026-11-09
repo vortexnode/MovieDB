@@ -313,9 +313,11 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
                 notificationKey = notificationKey,
                 title = title,
                 episodeName = episodeName,
-                episodeNumber = mediaId.toString(), // Store mediaId here for Intent to DetailActivity
+                episodeNumber = episodeNumber ?: "",
                 type = type,
-                alarmTime = finalAlarmTime
+                alarmTime = finalAlarmTime,
+                mediaId = mediaId,
+                season = null
             )
             val notificationId = scheduledNotificationDbHelper.addScheduledNotification(scheduledNotification)
 
