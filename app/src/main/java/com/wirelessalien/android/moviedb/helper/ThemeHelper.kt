@@ -33,12 +33,15 @@ object ThemeHelper {
 
     fun applyAppStyle(activity: Activity) {
         val preferences = PreferenceManager.getDefaultSharedPreferences(activity)
-        val appStyle = preferences.getString(APP_STYLE_PREFERENCE, "showcase_orange")
+        val appStyle = preferences.getString(APP_STYLE_PREFERENCE, "moviebase_orange")
 
-        if (appStyle == "showcase_orange") {
-            activity.setTheme(R.style.ThemeOverlay_ShowCase_Orange)
+        if (appStyle == "moviebase_orange") {
+            activity.setTheme(R.style.ThemeOverlay_Moviebase_Orange)
         } else {
-            DynamicColors.applyToActivityIfAvailable(activity)
+            val isDynamicColorsEnabled = preferences.getBoolean("dynamic_colors", false)
+            if (isDynamicColorsEnabled) {
+                DynamicColors.applyToActivityIfAvailable(activity)
+            }
         }
     }
 

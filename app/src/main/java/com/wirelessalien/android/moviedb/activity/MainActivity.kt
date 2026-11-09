@@ -406,28 +406,31 @@ class MainActivity : BaseActivity() {
             }
         }, this, Lifecycle.State.RESUMED)
 
-        val isShowcaseOrange = preferences.getString(ThemeHelper.APP_STYLE_PREFERENCE, "showcase_orange") == "showcase_orange"
-        if (isShowcaseOrange) {
+        val isMoviebaseOrange = preferences.getString(ThemeHelper.APP_STYLE_PREFERENCE, "moviebase_orange") == "moviebase_orange"
+        if (isMoviebaseOrange) {
             val bottomNavParams = binding.bottomNavigation.layoutParams as CoordinatorLayout.LayoutParams
-            val margin = resources.displayMetrics.density * 12
-            bottomNavParams.setMargins(margin.toInt(), margin.toInt(), margin.toInt(), margin.toInt())
+            val marginHorizontal = resources.displayMetrics.density * 16
+            val marginVertical = resources.displayMetrics.density * 12
+            bottomNavParams.setMargins(marginHorizontal.toInt(), 0, marginHorizontal.toInt(), marginVertical.toInt())
             binding.bottomNavigation.layoutParams = bottomNavParams
 
             val shapeAppearanceModel = com.google.android.material.shape.ShapeAppearanceModel.builder()
                 .setAllCorners(com.google.android.material.shape.CornerFamily.ROUNDED, resources.displayMetrics.density * 32)
                 .build()
             val materialShapeDrawable = com.google.android.material.shape.MaterialShapeDrawable(shapeAppearanceModel)
-            val typedValue = android.util.TypedValue()
-            theme.resolveAttribute(com.google.android.material.R.attr.colorSurfaceContainer, typedValue, true)
-            materialShapeDrawable.fillColor = android.content.res.ColorStateList.valueOf(typedValue.data)
             materialShapeDrawable.elevation = resources.displayMetrics.density * 8
+            materialShapeDrawable.fillColor = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#1D1D1D"))
             binding.bottomNavigation.background = materialShapeDrawable
-            binding.bottomNavigation.itemActiveIndicatorColor = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#4A2A0A"))
+            binding.bottomNavigation.itemActiveIndicatorColor = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#2A2A2D"))
+            val states = arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf(-android.R.attr.state_checked))
+            val colors = intArrayOf(android.graphics.Color.parseColor("#FF8825"), android.graphics.Color.parseColor("#FFFFFF"))
+            binding.bottomNavigation.itemIconTintList = android.content.res.ColorStateList(states, colors)
         }
 
         binding.bottomNavigation.viewTreeObserver.addOnGlobalLayoutListener {
             val bottomNavHeight = binding.bottomNavigation.height
-            val bottomMarginOffset = if (isShowcaseOrange) (resources.displayMetrics.density * 12).toInt() else 0
+            val isMoviebaseOrange = preferences.getString(ThemeHelper.APP_STYLE_PREFERENCE, "moviebase_orange") == "moviebase_orange"
+            val bottomMarginOffset = if (isMoviebaseOrange) (resources.displayMetrics.density * 12).toInt() else 0
 
             val paramsChip = binding.upnextChip.layoutParams as CoordinatorLayout.LayoutParams
             paramsChip.bottomMargin = bottomNavHeight + 16 + bottomMarginOffset
@@ -450,7 +453,8 @@ class MainActivity : BaseActivity() {
 
         binding.container.viewTreeObserver.addOnGlobalLayoutListener {
             val bottomNavHeight = binding.bottomNavigation.height
-            val bottomMarginOffset = if (isShowcaseOrange) (resources.displayMetrics.density * 12).toInt() else 0
+            val isMoviebaseOrange = preferences.getString(ThemeHelper.APP_STYLE_PREFERENCE, "moviebase_orange") == "moviebase_orange"
+            val bottomMarginOffset = if (isMoviebaseOrange) (resources.displayMetrics.density * 12).toInt() else 0
             val params = binding.container.layoutParams as CoordinatorLayout.LayoutParams
             params.bottomMargin = bottomNavHeight + bottomMarginOffset
             binding.container.layoutParams = params
