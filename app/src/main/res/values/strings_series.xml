@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="series_tab_progress">Progress</string>
+    <string name="series_tab_soon">Soon</string>
+    <string name="series_tab_discover">Discover</string>
+    <string name="series_filter_only_unfinished">Only unfinished</string>
+    <string name="series_filter_only_new_episodes">Only with new episodes</string>
+    <plurals name="series_shows_count">
+        <item quantity="one">%d show</item>
+        <item quantity="other">%d shows</item>
+    </plurals>
+    <string name="series_sort_recently_watched">Recently watched</string>
+    <string name="series_sort_name">Name</string>
+    <string name="series_sort_progress">Progress</string>
+    <string name="series_sort_next_air_date">Next air date</string>
+    <string name="series_sort_release_date">Release date</string>
+    <plurals name="series_episodes_count">
+        <item quantity="one">%d episode</item>
+        <item quantity="other">%d episodes</item>
+    </plurals>
+    <string name="series_days_today">Today</string>
+    <string name="series_days_tomorrow">Tomorrow</string>
+    <plurals name="series_days_count">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <string name="series_episode_info_format">S%1$02d | E%2$d · %3$s</string>
+    <string name="series_episode_info_format_no_title">S%1$02d | E%2$d</string>
+    <string name="series_episode_info_date_format">%1$s · S%2$02d | E%3$d</string>
+    <string name="series_progress_format">%1$d/%2$d</string>
+    <string name="series_progress_percent">%1$d%%</string>
+    <string name="series_empty_discover">Discover</string>
+    <string name="series_mark_watched_undo">Episode marked as watched</string>
+    <string name="series_undo">Undo</string>
+</resources>

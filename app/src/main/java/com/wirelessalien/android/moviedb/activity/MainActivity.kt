@@ -256,7 +256,7 @@ class MainActivity : BaseActivity() {
                     selectedFragment = newInstance(MOVIE)
                 }
                 R.id.nav_series -> {
-                    selectedFragment = newInstance(TV)
+                    selectedFragment = com.wirelessalien.android.moviedb.fragment.SeriesHubFragment()
                 }
                 R.id.nav_saved -> {
                     selectedFragment = newSavedInstance()
@@ -310,7 +310,7 @@ class MainActivity : BaseActivity() {
                 }
                 menu.findItem(R.id.nav_series).isVisible -> {
                     initialItemId = R.id.nav_series
-                    newInstance(TV)
+                    com.wirelessalien.android.moviedb.fragment.SeriesHubFragment()
                 }
                 menu.findItem(R.id.nav_saved).isVisible -> {
                     initialItemId = R.id.nav_saved
@@ -695,6 +695,7 @@ class MainActivity : BaseActivity() {
                 val listType = fragment.arguments?.getString(ShowFragment.ARG_LIST_TYPE)
                 if (listType == SectionsPagerAdapter.MOVIE) getString(R.string.title_movies) else getString(R.string.title_series)
             }
+            is com.wirelessalien.android.moviedb.fragment.SeriesHubFragment -> getString(R.string.title_series)
             is ListFragment -> getString(R.string.title_saved)
             is AccountDataFragment -> getString(R.string.title_account)
             is AccountDataFragmentTkt -> getString(R.string.title_account)
@@ -803,6 +804,8 @@ class MainActivity : BaseActivity() {
                 val listType = fragment.arguments?.getString(ShowFragment.ARG_LIST_TYPE)
                 if (listType == "movie") getString(R.string.search_movies) else getString(R.string.search_series)
             }
+            is com.wirelessalien.android.moviedb.fragment.SeriesHubFragment -> getString(R.string.search_series)
+            is com.wirelessalien.android.moviedb.fragment.SeriesHubFragment -> getString(R.string.search_series)
             is ListFragment -> getString(R.string.search_saved)
 //            is AccountDataFragment -> getString(R.string.search_account)
 //            is AccountDataFragmentTkt -> getString(R.string.search_account_tkt)

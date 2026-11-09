@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="series_tab_progress">Прогресс</string>
+    <string name="series_tab_soon">Скоро</string>
+    <string name="series_tab_discover">Поиск</string>
+    <string name="series_filter_only_unfinished">Только незаконченные</string>
+    <string name="series_filter_only_new_episodes">Только с новыми сериями</string>
+    <plurals name="series_shows_count">
+        <item quantity="one">%d сериал</item>
+        <item quantity="few">%d сериала</item>
+        <item quantity="many">%d сериалов</item>
+        <item quantity="other">%d сериалов</item>
+    </plurals>
+    <string name="series_sort_recently_watched">Недавно просмотренные</string>
+    <string name="series_sort_name">Название</string>
+    <string name="series_sort_progress">Прогресс</string>
+    <string name="series_sort_next_air_date">Дата выхода следующей</string>
+    <string name="series_sort_release_date">Дата выхода</string>
+    <plurals name="series_episodes_count">
+        <item quantity="one">%d серия</item>
+        <item quantity="few">%d серии</item>
+        <item quantity="many">%d серий</item>
+        <item quantity="other">%d серий</item>
+    </plurals>
+    <string name="series_days_today">Сегодня</string>
+    <string name="series_days_tomorrow">Завтра</string>
+    <plurals name="series_days_count">
+        <item quantity="one">%d день</item>
+        <item quantity="few">%d дня</item>
+        <item quantity="many">%d дней</item>
+        <item quantity="other">%d дней</item>
+    </plurals>
+    <string name="series_episode_info_format">S%1$02d | E%2$d · %3$s</string>
+    <string name="series_episode_info_format_no_title">S%1$02d | E%2$d</string>
+    <string name="series_episode_info_date_format">%1$s · S%2$02d | E%3$d</string>
+    <string name="series_progress_format">%1$d/%2$d</string>
+    <string name="series_progress_percent">%1$d%%</string>
+    <string name="series_empty_discover">Поиск</string>
+    <string name="series_mark_watched_undo">Серия отмечена как просмотренная</string>
+    <string name="series_undo">Отменить</string>
+</resources>

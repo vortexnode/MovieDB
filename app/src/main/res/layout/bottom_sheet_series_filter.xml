@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <CheckBox
+        android:id="@+id/cbUnfinished"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/series_filter_only_unfinished"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:layout_marginBottom="16dp" />
+
+    <CheckBox
+        android:id="@+id/cbNewEpisodes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/series_filter_only_new_episodes"
+        android:textAppearance="?attr/textAppearanceBodyLarge" />
+</LinearLayout>
