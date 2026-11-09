@@ -412,6 +412,14 @@
         app:iconSpaceReserved="false">
 
         <androidx.preference.SwitchPreferenceCompat
+            android:key="key_reminders_only_library"
+            android:title="@string/reminders_only_library_title"
+            android:summary="@string/reminders_only_library_summary"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false"/>
+
+
+        <androidx.preference.SwitchPreferenceCompat
             android:key="key_reminders_movie_premieres"
             android:title="@string/reminders_movie_premieres_title"
             android:summary="@string/reminders_movie_premieres_summary"

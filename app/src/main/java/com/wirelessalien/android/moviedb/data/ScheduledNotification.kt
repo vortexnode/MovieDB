@@ -27,5 +27,7 @@ data class ScheduledNotification(
     val episodeName: String,
     val episodeNumber: String,
     val type: String,
-    val alarmTime: Long
+    val alarmTime: Long,
+    val mediaId: Int,
+    val season: Int?
 )

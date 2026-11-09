@@ -176,7 +176,7 @@ class PersonCreditsWorker(context: Context, workerParams: WorkerParameters) : Co
                     // Schedule 1 week advance
                     if (cal1Week.time.after(currentDate)) {
                         scheduleNotification(
-                            credit.mediaType, credit.id, credit.title, combinedPersonName, credit.releaseDateStr, cal1Week.timeInMillis, 
+                            credit.mediaType, credit.id, credit.title, combinedPersonName, credit.releaseDateStr, cal1Week.timeInMillis,
                             "1week_${credit.id}", scheduledDbHelper, notificationDbHelper, alarmManager
                         )
                     }
@@ -185,9 +185,9 @@ class PersonCreditsWorker(context: Context, workerParams: WorkerParameters) : Co
                     if (releaseDate.after(currentDate)) {
                         val calDayOf = Calendar.getInstance()
                         calDayOf.time = releaseDate
-                  
+
                         scheduleNotification(
-                            credit.mediaType, credit.id, credit.title, combinedPersonName, credit.releaseDateStr, calDayOf.timeInMillis, 
+                            credit.mediaType, credit.id, credit.title, combinedPersonName, credit.releaseDateStr, calDayOf.timeInMillis,
                             "dayof_${credit.id}", scheduledDbHelper, notificationDbHelper, alarmManager
                         )
                     }
@@ -221,9 +221,11 @@ class PersonCreditsWorker(context: Context, workerParams: WorkerParameters) : Co
         val scheduledNotification = ScheduledNotification(
             id = 0,
             notificationKey = notificationKey,
-            title = personName, 
+            title = personName,
             episodeName = title,
-            episodeNumber = mediaId.toString(), // Store media ID here to use it in intent
+            episodeNumber = "",
+            mediaId = mediaId,
+            season = null,
             type = type,
             alarmTime = alarmTime
         )
