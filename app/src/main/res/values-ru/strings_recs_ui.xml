@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="show_as_grid">Показать сеткой</string>
+    <string name="show_as_list">Показать списком</string>
+    <string name="in_plans">В планах</string>
+    <string name="error_state">Произошла ошибка.</string>
+    <string name="retry">Повторить</string>
+    <string name="based_on_ratings">На основе ваших оценок и избранного</string>
+</resources>

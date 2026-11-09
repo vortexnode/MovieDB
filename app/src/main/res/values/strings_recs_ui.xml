@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="show_as_grid">Show as grid</string>
+    <string name="show_as_list">Show as list</string>
+    <string name="in_plans">In plans</string>
+    <string name="error_state">An error occurred.</string>
+    <string name="retry">Retry</string>
+    <string name="based_on_ratings">Based on your ratings and favorites</string>
+</resources>
