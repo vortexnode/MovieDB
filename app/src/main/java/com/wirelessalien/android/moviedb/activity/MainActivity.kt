@@ -176,6 +176,18 @@ class MainActivity : BaseActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        val bottomNavContainer = binding.bottomNavigation.parent as android.view.View
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(bottomNavContainer) { view, windowInsets ->
+            val insets = windowInsets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            view.layoutParams = (view.layoutParams as android.view.ViewGroup.MarginLayoutParams).apply {
+                leftMargin = (16 * resources.displayMetrics.density).toInt() + insets.left
+                rightMargin = (16 * resources.displayMetrics.density).toInt() + insets.right
+                bottomMargin = (16 * resources.displayMetrics.density).toInt() + insets.bottom
+            }
+            windowInsets
+        }
+
         epDbHelper = EpisodeReminderDatabaseHelper(applicationContext)
         mDatabaseHelper = MovieDatabaseHelper(applicationContext)
 
