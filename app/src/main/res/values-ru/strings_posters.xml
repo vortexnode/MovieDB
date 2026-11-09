@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="customize_posters">Настроить постеры</string>
+    <string name="poster_indicators">Индикаторы</string>
+    <string name="poster_watched">Просмотрено</string>
+    <string name="poster_watched_summary">Не отображается на эпизодах</string>
+    <string name="poster_will_watch">Буду смотреть</string>
+    <string name="poster_favorites">Избранное</string>
+    <string name="poster_collection">Коллекция</string>
+    <string name="poster_lists">Ваши списки</string>
+    <string name="poster_your_rating">Ваша оценка</string>
+    <string name="poster_tmdb_rating">Рейтинг TMDB</string>
+    <string name="poster_show_tmdb_rating">Показывать рейтинг на постере</string>
+</resources>
