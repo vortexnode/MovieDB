@@ -49,6 +49,7 @@ open class BaseActivity : AppCompatActivity() {
     private lateinit var connectivityManager: ConnectivityManager
     private lateinit var networkCallback: NetworkCallback
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeHelper.applyAppStyle(this)
         ThemeHelper.applyAmoledTheme(this)
         connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
         super.onCreate(savedInstanceState)

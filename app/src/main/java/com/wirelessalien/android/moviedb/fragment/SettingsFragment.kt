@@ -894,7 +894,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         if (key == SectionsPagerAdapter.HIDE_MOVIES_PREFERENCE || key == SectionsPagerAdapter.HIDE_ACCOUNT_PREFERENCE || key == SectionsPagerAdapter.HIDE_SAVED_PREFERENCE || key == SectionsPagerAdapter.HIDE_SERIES_PREFERENCE) {
             (requireActivity() as SettingsActivity).mTabsPreferenceChanged = true
         }
-        if (key == ThemeHelper.AMOLED_THEME_PREFERENCE) {
+        if (key == ThemeHelper.AMOLED_THEME_PREFERENCE || key == ThemeHelper.APP_STYLE_PREFERENCE) {
             requireActivity().recreate()
         }
     }

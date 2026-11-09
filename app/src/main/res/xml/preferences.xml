@@ -378,6 +378,15 @@
     <PreferenceCategory android:title="@string/other"
         app:iconSpaceReserved="false">
 
+        <ListPreference
+            android:defaultValue="showcase_orange"
+            android:entries="@array/app_style_entries"
+            android:entryValues="@array/app_style_values"
+            android:key="key_app_style"
+            android:title="@string/app_style"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="key_amoled_theme"

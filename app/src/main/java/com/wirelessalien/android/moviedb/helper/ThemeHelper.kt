@@ -23,11 +23,24 @@ package com.wirelessalien.android.moviedb.helper
 import android.app.Activity
 import android.content.res.Configuration
 import androidx.preference.PreferenceManager
+import com.google.android.material.color.DynamicColors
 import com.wirelessalien.android.moviedb.R
 
 object ThemeHelper {
 
     const val AMOLED_THEME_PREFERENCE = "key_amoled_theme"
+    const val APP_STYLE_PREFERENCE = "key_app_style"
+
+    fun applyAppStyle(activity: Activity) {
+        val preferences = PreferenceManager.getDefaultSharedPreferences(activity)
+        val appStyle = preferences.getString(APP_STYLE_PREFERENCE, "showcase_orange")
+
+        if (appStyle == "showcase_orange") {
+            activity.setTheme(R.style.ThemeOverlay_ShowCase_Orange)
+        } else {
+            DynamicColors.applyToActivityIfAvailable(activity)
+        }
+    }
 
     fun applyAmoledTheme(activity: Activity) {
         val preferences = PreferenceManager.getDefaultSharedPreferences(activity)
