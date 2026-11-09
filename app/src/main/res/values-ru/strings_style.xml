@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_style">Стиль приложения</string>
+    <string name="showcase_orange">Оранжевый Showcase</string>
+    <string name="material_you">Material You</string>
+</resources>

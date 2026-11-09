@@ -171,7 +171,7 @@ class MainActivity : BaseActivity() {
     @SuppressLint("InlinedApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
-        DynamicColors.applyToActivityIfAvailable(this)
+        // Dynamic colors handled in ThemeHelper
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -406,32 +406,53 @@ class MainActivity : BaseActivity() {
             }
         }, this, Lifecycle.State.RESUMED)
 
+        val isShowcaseOrange = preferences.getString(ThemeHelper.APP_STYLE_PREFERENCE, "showcase_orange") == "showcase_orange"
+        if (isShowcaseOrange) {
+            val bottomNavParams = binding.bottomNavigation.layoutParams as CoordinatorLayout.LayoutParams
+            val margin = resources.displayMetrics.density * 12
+            bottomNavParams.setMargins(margin.toInt(), margin.toInt(), margin.toInt(), margin.toInt())
+            binding.bottomNavigation.layoutParams = bottomNavParams
+
+            val shapeAppearanceModel = com.google.android.material.shape.ShapeAppearanceModel.builder()
+                .setAllCorners(com.google.android.material.shape.CornerFamily.ROUNDED, resources.displayMetrics.density * 32)
+                .build()
+            val materialShapeDrawable = com.google.android.material.shape.MaterialShapeDrawable(shapeAppearanceModel)
+            val typedValue = android.util.TypedValue()
+            theme.resolveAttribute(com.google.android.material.R.attr.colorSurfaceContainer, typedValue, true)
+            materialShapeDrawable.fillColor = android.content.res.ColorStateList.valueOf(typedValue.data)
+            materialShapeDrawable.elevation = resources.displayMetrics.density * 8
+            binding.bottomNavigation.background = materialShapeDrawable
+            binding.bottomNavigation.itemActiveIndicatorColor = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#4A2A0A"))
+        }
+
         binding.bottomNavigation.viewTreeObserver.addOnGlobalLayoutListener {
             val bottomNavHeight = binding.bottomNavigation.height
+            val bottomMarginOffset = if (isShowcaseOrange) (resources.displayMetrics.density * 12).toInt() else 0
 
             val paramsChip = binding.upnextChip.layoutParams as CoordinatorLayout.LayoutParams
-            paramsChip.bottomMargin = bottomNavHeight + 16
+            paramsChip.bottomMargin = bottomNavHeight + 16 + bottomMarginOffset
             binding.upnextChip.layoutParams = paramsChip
 
             // Adjust the position of the first FAB
             val paramsFab = binding.fab.layoutParams as CoordinatorLayout.LayoutParams
-            paramsFab.bottomMargin = bottomNavHeight + 16
+            paramsFab.bottomMargin = bottomNavHeight + 16 + bottomMarginOffset
             binding.fab.layoutParams = paramsFab
 
             // Adjust the position of the second FAB above the first FAB with a 16dp margin
             val paramsFab2 = binding.fab2.layoutParams as CoordinatorLayout.LayoutParams
-            paramsFab2.bottomMargin = bottomNavHeight + binding.fab.height + 32 // 16dp margin + fab height + 16dp margin
+            paramsFab2.bottomMargin = bottomNavHeight + binding.fab.height + 32 + bottomMarginOffset // 16dp margin + fab height + 16dp margin
             binding.fab2.layoutParams = paramsFab2
 
             val paramsToggleGroup = binding.toggleButtonGroup.root.layoutParams as CoordinatorLayout.LayoutParams
-            paramsToggleGroup.bottomMargin = bottomNavHeight + 16
+            paramsToggleGroup.bottomMargin = bottomNavHeight + 16 + bottomMarginOffset
             binding.toggleButtonGroup.root.layoutParams = paramsToggleGroup
         }
 
         binding.container.viewTreeObserver.addOnGlobalLayoutListener {
             val bottomNavHeight = binding.bottomNavigation.height
+            val bottomMarginOffset = if (isShowcaseOrange) (resources.displayMetrics.density * 12).toInt() else 0
             val params = binding.container.layoutParams as CoordinatorLayout.LayoutParams
-            params.bottomMargin = bottomNavHeight
+            params.bottomMargin = bottomNavHeight + bottomMarginOffset
             binding.container.layoutParams = params
         }
 
@@ -1407,6 +1428,7 @@ class MainActivity : BaseActivity() {
     }
 
     override fun onResume() {
+        ThemeHelper.applyAppStyle(this)
         ThemeHelper.applyAmoledTheme(this)
         super.onResume()
         getCurrentFragment()?.let { updateToolbarTitle(it) }

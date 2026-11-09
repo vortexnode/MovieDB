@@ -49,7 +49,8 @@ class App : Application() {
             // Singleton instance already set
         }
 
-        DynamicColors.applyToActivitiesIfAvailable(this)
+        // Let activities apply DynamicColors manually because of Showcase Orange theme
+        // DynamicColors.applyToActivitiesIfAvailable(this)
         fetchAndStoreGenres()
     }
 
