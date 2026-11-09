@@ -33,7 +33,12 @@ object ThemeHelper {
 
     fun applyAppStyle(activity: Activity) {
         val preferences = PreferenceManager.getDefaultSharedPreferences(activity)
-        val appStyle = preferences.getString(APP_STYLE_PREFERENCE, "moviebase_orange")
+        var appStyle = preferences.getString(APP_STYLE_PREFERENCE, "moviebase_orange")
+
+        if (appStyle == "showcase_orange") {
+            appStyle = "moviebase_orange"
+            preferences.edit().putString(APP_STYLE_PREFERENCE, appStyle).apply()
+        }
 
         if (appStyle == "moviebase_orange") {
             activity.setTheme(R.style.ThemeOverlay_Moviebase_Orange)
