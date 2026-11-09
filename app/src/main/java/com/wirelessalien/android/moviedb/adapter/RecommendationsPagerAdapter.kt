@@ -8,7 +8,13 @@ import com.wirelessalien.android.moviedb.fragment.RecommendationsTabFragment
 class RecommendationsPagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(activity) {
     override fun getItemCount(): Int = 2
 
+    var currentGridMode: Boolean = false
+
     override fun createFragment(position: Int): Fragment {
-        return RecommendationsTabFragment.newInstance(position == 0)
+        val fragment = RecommendationsTabFragment.newInstance(position == 0)
+        if (currentGridMode) {
+            fragment.setGridMode(true)
+        }
+        return fragment
     }
 }

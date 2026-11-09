@@ -27,36 +27,58 @@ class RecommendationsAdapter(
     private val dbHelper: MovieDatabaseHelper
 ) : RecyclerView.Adapter<RecommendationsAdapter.ViewHolder>() {
 
+    var isGrid: Boolean = false
     private var items: MutableList<RecommendationResult> = mutableListOf()
+    private val addedIds: MutableSet<Int> = mutableSetOf()
+    private val animatedPositions: MutableSet<Int> = mutableSetOf()
+
+    companion object {
+        private const val VIEW_TYPE_LIST = 0
+        private const val VIEW_TYPE_GRID = 1
+    }
 
     fun submitList(newItems: List<RecommendationResult>) {
         items.clear()
         items.addAll(newItems)
+        addedIds.clear()
+        animatedPositions.clear()
         notifyDataSetChanged()
     }
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val posterImage: ImageView = view.findViewById(R.id.poster_image)
         val titleText: TextView = view.findViewById(R.id.title_text)
-        val yearScoreText: TextView = view.findViewById(R.id.year_score_text)
         val scoreBadge: TextView = view.findViewById(R.id.scoreBadge)
-        val seedText: TextView = view.findViewById(R.id.seed_text)
-        val btnWatchlist: MaterialButton = view.findViewById(R.id.btn_add_watchlist)
-        val btnNotInterested: MaterialButton = view.findViewById(R.id.btn_not_interested)
+        // List only fields
+        val yearScoreText: TextView? = view.findViewById(R.id.year_score_text)
+        val seedText: TextView? = view.findViewById(R.id.seed_text)
+        val btnWatchlist: MaterialButton? = view.findViewById(R.id.btn_add_watchlist)
+        val btnNotInterested: MaterialButton? = view.findViewById(R.id.btn_not_interested)
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return if (isGrid) VIEW_TYPE_GRID else VIEW_TYPE_LIST
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_recommendation, parent, false)
+        val layoutRes = if (viewType == VIEW_TYPE_GRID) R.layout.item_recommendation_grid else R.layout.item_recommendation
+        val view = LayoutInflater.from(parent.context).inflate(layoutRes, parent, false)
         return ViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
 
+        // Entrance animation
+        holder.itemView.alpha = 0f
+        holder.itemView.translationY = 8f * context.resources.displayMetrics.density
+        holder.itemView.animate().alpha(1f).translationY(0f).setDuration(300).start()
+
         holder.titleText.text = item.title
         val scoreStr = if (item.tmdbScore > 0) String.format("%.1f", item.tmdbScore) else "N/A"
-        holder.yearScoreText.text = "${item.releaseYear} • \u2605 $scoreStr"
-        holder.seedText.text = context.getString(R.string.recommendations_because_you_liked, item.seedTitle)
+
+        holder.yearScoreText?.text = "${item.releaseYear} • \u2605 $scoreStr"
+        holder.seedText?.text = context.getString(R.string.recommendations_because_you_liked, item.seedTitle)
 
         if (item.tmdbScore > 0) {
             holder.scoreBadge.text = String.format("%.1f", item.tmdbScore)
@@ -83,35 +105,62 @@ class RecommendationsAdapter(
             context.startActivity(intent)
         }
 
-        holder.btnWatchlist.setOnClickListener {
-            CoroutineScope(Dispatchers.IO).launch {
-                val db = dbHelper.writableDatabase
-                val values = ContentValues().apply {
-                    put(MovieDatabaseHelper.COLUMN_MOVIES_ID, item.tmdbId)
-                    put(MovieDatabaseHelper.COLUMN_RATING, 0.0)
-                    put(MovieDatabaseHelper.COLUMN_IMAGE, item.posterPath ?: "")
-                    put(MovieDatabaseHelper.COLUMN_ICON, item.posterPath ?: "")
-                    put(MovieDatabaseHelper.COLUMN_TITLE, item.title)
-                    put(MovieDatabaseHelper.COLUMN_SUMMARY, item.overview)
-                    put(MovieDatabaseHelper.COLUMN_GENRES, "")
-                    put(MovieDatabaseHelper.COLUMN_GENRES_IDS, item.genreIds)
-                    put(MovieDatabaseHelper.COLUMN_RELEASE_DATE, item.releaseDate)
-                    put(MovieDatabaseHelper.COLUMN_CATEGORIES, MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH)
-                    put(MovieDatabaseHelper.COLUMN_MOVIE, if (isMovie) 1 else 0)
-                }
-                val result = db.insertWithOnConflict(MovieDatabaseHelper.TABLE_MOVIES, null, values, SQLiteDatabase.CONFLICT_IGNORE)
-                CoroutineScope(Dispatchers.Main).launch {
-                    if (result != -1L) {
-                        Toast.makeText(context, context.getString(R.string.added_to_watchlist), Toast.LENGTH_SHORT).show()
+        if (isGrid) {
+            holder.itemView.setOnLongClickListener {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val typeStr = if (isMovie) "movie" else "tv"
+                    dbHelper.insertNotInterested(item.tmdbId, typeStr)
+                    CoroutineScope(Dispatchers.Main).launch {
                         removeItem(holder.adapterPosition)
-                    } else {
-                        Toast.makeText(context, context.getString(R.string.failed_to_add_media_to_list), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.recommendations_not_interested), Toast.LENGTH_SHORT).show()
+                    }
+                }
+                true
+            }
+        }
+
+        holder.btnWatchlist?.let { btn ->
+            if (addedIds.contains(item.tmdbId)) {
+                btn.isEnabled = false
+                btn.text = context.getString(R.string.in_plans)
+                btn.setIconResource(R.drawable.ic_check)
+            } else {
+                btn.isEnabled = true
+                btn.text = context.getString(R.string.recommendations_add_to_watchlist)
+                btn.setIconResource(R.drawable.ic_bookmark_border)
+            }
+
+            btn.setOnClickListener {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val db = dbHelper.writableDatabase
+                    val values = ContentValues().apply {
+                        put(MovieDatabaseHelper.COLUMN_MOVIES_ID, item.tmdbId)
+                        put(MovieDatabaseHelper.COLUMN_RATING, 0.0)
+                        put(MovieDatabaseHelper.COLUMN_IMAGE, item.posterPath ?: "")
+                        put(MovieDatabaseHelper.COLUMN_ICON, item.posterPath ?: "")
+                        put(MovieDatabaseHelper.COLUMN_TITLE, item.title)
+                        put(MovieDatabaseHelper.COLUMN_SUMMARY, item.overview)
+                        put(MovieDatabaseHelper.COLUMN_GENRES, "")
+                        put(MovieDatabaseHelper.COLUMN_GENRES_IDS, item.genreIds)
+                        put(MovieDatabaseHelper.COLUMN_RELEASE_DATE, item.releaseDate)
+                        put(MovieDatabaseHelper.COLUMN_CATEGORIES, MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH)
+                        put(MovieDatabaseHelper.COLUMN_MOVIE, if (isMovie) 1 else 0)
+                    }
+                    val result = db.insertWithOnConflict(MovieDatabaseHelper.TABLE_MOVIES, null, values, SQLiteDatabase.CONFLICT_IGNORE)
+                    CoroutineScope(Dispatchers.Main).launch {
+                        if (result != -1L) {
+                            Toast.makeText(context, context.getString(R.string.added_to_watchlist), Toast.LENGTH_SHORT).show()
+                            addedIds.add(item.tmdbId)
+                            notifyItemChanged(holder.adapterPosition)
+                        } else {
+                            Toast.makeText(context, context.getString(R.string.failed_to_add_media_to_list), Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             }
         }
 
-        holder.btnNotInterested.setOnClickListener {
+        holder.btnNotInterested?.setOnClickListener {
             CoroutineScope(Dispatchers.IO).launch {
                 val typeStr = if (isMovie) "movie" else "tv"
                 dbHelper.insertNotInterested(item.tmdbId, typeStr)
