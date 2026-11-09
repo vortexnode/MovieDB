@@ -352,10 +352,28 @@ class CalendarDataHelper(private val context: Context) {
         return map.values.toList()
     }
 
+    fun getLocalDateString(isoString: String): String {
+        if (!isoString.contains("T")) {
+            return isoString
+        }
+        try {
+            val isoFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.US)
+            isoFormat.timeZone = java.util.TimeZone.getTimeZone("UTC")
+            val date = isoFormat.parse(isoString)
+            if (date != null) {
+                val localFormat = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+                return localFormat.format(date)
+            }
+        } catch (e: Exception) {
+            // ignore
+        }
+        return isoString.substringBefore("T")
+    }
+
     fun groupItemsByDay(items: List<CalendarItem>): Map<String, List<CalendarItem>> {
         val grouped = mutableMapOf<String, MutableList<CalendarItem>>()
         for (item in items) {
-            val date = item.releaseDate.substringBefore("T")
+            val date = getLocalDateString(item.releaseDate)
             if (date.isNotEmpty()) {
                 if (!grouped.containsKey(date)) {
                     grouped[date] = mutableListOf()

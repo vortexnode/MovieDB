@@ -192,7 +192,7 @@ class CalendarActivity : BaseActivity() {
 
     private fun updateWholeMonthAgenda() {
         val monthYearStr = SimpleDateFormat("yyyy-MM", Locale.US).format(currentMonthCalendar.time)
-        val monthItems = filteredData.filter { it.releaseDate.startsWith(monthYearStr) }
+        val monthItems = filteredData.filter { dataHelper.getLocalDateString(it.releaseDate).startsWith(monthYearStr) }
         wholeMonthAgendaAdapter.submitList(monthItems)
 
         if (binding.toggleGroup.checkedButtonId == R.id.btnAgendaView) {
