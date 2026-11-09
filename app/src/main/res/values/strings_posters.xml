@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="customize_posters">Customize posters</string>
+    <string name="poster_indicators">Indicators</string>
+    <string name="poster_watched">Watched</string>
+    <string name="poster_watched_summary">Not shown on episodes</string>
+    <string name="poster_will_watch">Will watch</string>
+    <string name="poster_favorites">Favorites</string>
+    <string name="poster_collection">Collection</string>
+    <string name="poster_lists">Your lists</string>
+    <string name="poster_your_rating">Your rating</string>
+    <string name="poster_tmdb_rating">TMDB Rating</string>
+    <string name="poster_show_tmdb_rating">Show rating on poster</string>
+</resources>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:title="@string/poster_indicators"
+        app:iconSpaceReserved="false">
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:key="poster_show_watched"
+            android:title="@string/poster_watched"
+            android:summary="@string/poster_watched_summary"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false"/>
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:key="poster_show_will_watch"
+            android:title="@string/poster_will_watch"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false"/>
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:key="poster_show_favorites"
+            android:title="@string/poster_favorites"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false"/>
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:key="poster_show_collection"
+            android:title="@string/poster_collection"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false"/>
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:key="poster_show_lists"
+            android:title="@string/poster_lists"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false"/>
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:key="poster_show_your_rating"
+            android:title="@string/poster_your_rating"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/poster_tmdb_rating"
+        app:iconSpaceReserved="false">
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:key="poster_show_tmdb_rating"
+            android:title="@string/poster_show_tmdb_rating"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false"/>
+    </PreferenceCategory>
+</PreferenceScreen>
