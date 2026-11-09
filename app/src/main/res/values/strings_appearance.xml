@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_style">App style</string>
-    <string name="showcase_orange">Showcase Orange</string>
+    <string name="showcase_orange">Moviebase Orange</string>
     <string name="material_you">Material You</string>
 
     <string-array name="app_style_entries">
@@ -10,7 +10,7 @@
     </string-array>
 
     <string-array name="app_style_values">
-        <item>showcase_orange</item>
+        <item>moviebase_orange</item>
         <item>material_you</item>
     </string-array>
 </resources>

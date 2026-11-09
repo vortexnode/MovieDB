@@ -168,6 +168,7 @@
         layout="@layout/toggle_button_group" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
+        app:labelVisibilityMode="unlabeled"
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

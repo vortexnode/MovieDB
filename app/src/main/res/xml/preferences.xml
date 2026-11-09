@@ -366,6 +366,26 @@
 
     <PreferenceCategory android:title="@string/experimental"
         app:iconSpaceReserved="false">
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/appearance"
+        app:iconSpaceReserved="false">
+
+        <ListPreference
+            android:defaultValue="moviebase_orange"
+            android:entries="@array/app_style_entries"
+            android:entryValues="@array/app_style_values"
+            android:key="key_app_style"
+            android:title="@string/app_style"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="dynamic_colors"
+            android:title="@string/dynamic_colors"
+            android:summary="@string/dynamic_colors_summary"
+            app:iconSpaceReserved="false"/>
 
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="false"
@@ -373,19 +393,6 @@
             android:title="@string/dynamic_color_preference_title"
             android:summary="@string/dynamic_color_preference_summary"
             app:iconSpaceReserved="false"/>
-    </PreferenceCategory>
-
-    <PreferenceCategory android:title="@string/other"
-        app:iconSpaceReserved="false">
-
-        <ListPreference
-            android:defaultValue="showcase_orange"
-            android:entries="@array/app_style_entries"
-            android:entryValues="@array/app_style_values"
-            android:key="key_app_style"
-            android:title="@string/app_style"
-            app:iconSpaceReserved="false"
-            app:useSimpleSummaryProvider="true" />
 
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="false"

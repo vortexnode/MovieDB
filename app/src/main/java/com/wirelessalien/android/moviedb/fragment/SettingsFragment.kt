@@ -815,6 +815,20 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         dialog.show()
     }
 
+    private fun updateDynamicColorsState() {
+        val appStyle = preferenceManager.sharedPreferences?.getString(ThemeHelper.APP_STYLE_PREFERENCE, "moviebase_orange")
+        val dynamicColorsPref = findPreference<androidx.preference.SwitchPreferenceCompat>("dynamic_colors")
+        if (appStyle == "moviebase_orange") {
+            dynamicColorsPref?.isEnabled = false
+        } else {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                dynamicColorsPref?.isEnabled = true
+            } else {
+                dynamicColorsPref?.isEnabled = false
+            }
+        }
+    }
+
     private fun updatePermissionPreferenceVisibility() {
         val requestPermissionPreference = findPreference<Preference>("key_request_notification_permission")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -851,6 +865,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         super.onResume()
         updatePermissionPreferenceVisibility()
         preferenceManager.sharedPreferences?.registerOnSharedPreferenceChangeListener(this)
+        updateDynamicColorsState()
     }
 
     override fun onPause() {
@@ -895,6 +910,10 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             (requireActivity() as SettingsActivity).mTabsPreferenceChanged = true
         }
         if (key == ThemeHelper.AMOLED_THEME_PREFERENCE || key == ThemeHelper.APP_STYLE_PREFERENCE) {
+            updateDynamicColorsState()
+            requireActivity().recreate()
+        }
+        if (key == "dynamic_colors") {
             requireActivity().recreate()
         }
     }
